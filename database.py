@@ -18,6 +18,7 @@ class Admin(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     platform_name = db.Column(db.String(120), nullable=False)
+    is_installed = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

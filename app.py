@@ -15,6 +15,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 # Decoradores
+def check_installation():
+    with app.app_context():
+        admin = Admin.query.first()
+        return admin is not None and admin.is_installed
+
+def installation_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not check_installation() and request.endpoint != 'install':
+            return redirect(url_for('install'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -35,14 +48,24 @@ def student_required(f):
 
 # Rotas
 @app.route('/')
+@installation_required
 def index():
-    if Admin.query.first():
+    if 'user_id' in session:
+        if 'user_type' in session:
+            if session['user_type'] == 'admin':
+                return redirect(url_for('admin_panel'))
+            elif session['user_type'] == 'student':
+                return redirect(url_for('dashboard'))
+    
+    # Se não estiver logado, verifica se a instalação foi concluída
+    if check_installation():
         return redirect(url_for('login'))
-    return redirect(url_for('install'))
+    else:
+        return redirect(url_for('install'))
 
 @app.route('/install', methods=['GET', 'POST'])
 def install():
-    if Admin.query.first():
+    if check_installation():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
@@ -51,7 +74,7 @@ def install():
         password = request.form['password']
         
         hashed_password = generate_password_hash(password)
-        new_admin = Admin(email=email, password=hashed_password, platform_name=platform_name)
+        new_admin = Admin(email=email, password=hashed_password, platform_name=platform_name, is_installed=True)
         
         db.create_all()
         db.session.add(new_admin)
@@ -63,7 +86,14 @@ def install():
     return render_template('installation.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@installation_required
 def login():
+    if 'user_id' in session:
+        if session['user_type'] == 'admin':
+            return redirect(url_for('admin_panel'))
+        elif session['user_type'] == 'student':
+            return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -98,6 +128,7 @@ def logout():
 
 @app.route('/admin/courses', methods=['GET'])
 @admin_required
+@installation_required
 def get_courses():
     courses = Course.query.all()
     return jsonify([{
@@ -109,6 +140,7 @@ def get_courses():
 
 @app.route('/admin')
 @admin_required
+@installation_required
 def admin_panel():
     # Verificar se o usuário atual é realmente um administrador
     current_user_id = session.get('user_id')
