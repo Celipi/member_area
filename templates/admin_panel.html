@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+         :root {
+            --bg-dark: #111827;
+            --bg-medium: #1F2937;
+            --bg-light: #374151;
+            --accent: #B91C1C;
+            --text-light: #ffffff;
+            --text-gray: #9CA3AF;
+            --border-color: #4B5563;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--bg-medium);
+            padding: 2rem 1.5rem;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow: auto;
+        }
+
+        .card {
+            background-color: var(--bg-medium);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .button {
+            background-color: var(--accent);
+            color: var(--text-light);
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #8B1515;
+        }
+
+        .icon {
+            margin-right: 0.5rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background-color: var(--bg-medium);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .chart-container {
+            background-color: var(--bg-medium);
+            border-radius: 0.5rem;
+            padding: 0 30px;
+            padding-top: 1rem;
+            padding-bottom: 55px;
+            height: 260px;
+            width: 100%;
+        }
+
+        #studentCourseChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+
+        .chart-placeholder {
+            width: 100%;
+            height: 200px;
+            background-color: var(--bg-dark);
+            border-radius: 0.25rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-gray);
+        }
+
+        .course-list, .student-list {
+            list-style-type: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .course-item, .student-item {
+            background-color: var(--bg-light);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-image, .student-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .course-content, .student-content {
+            padding: 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-title, .student-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-email {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: auto;
+            gap: 0.5rem;
+        }
+
+        .card-button {
+            background-color: var(--bg-dark);
+            color: var(--text-gray);
+            border: none;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .card-button:hover {
+            background-color: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        .card-button i {
+            font-size: 1rem;
+            margin-right: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+        }
+
+        .modal-content {
+            background-color: var(--bg-medium);
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .close {
+            color: var(--text-gray);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: var(--text-light);
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-gray);
+        }
+
+        .search-input,
+        form input[type="text"],
+        form input[type="email"],
+        form input[type="password"],
+        form textarea,
+        form select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            color: var(--text-light);
+        }
+
+        form input[type="file"] {
+            margin-bottom: 1rem;
+        }
+
+        /* Estilo para o container do input de arquivo */
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        /* Esconde o input de arquivo padrão */
+        #courseImage {
+            position: absolute;
+            left: -9999px;
+        }
+
+        /* Estilo para o label personalizado que substituirá visualmente o input */
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Estilo para o hover do label */
+        .file-input-label:hover {
+            background-color: #e0e0e0;
+            border-color: #999;
+        }
+
+        /* Estilo para o texto dentro do label */
+        .file-input-text {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        /* Ícone de upload (usando um emoji como placeholder) */
+        .file-input-icon::before {
+            content: "📁";
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+
+        /* Estilo para quando um arquivo é selecionado */
+        #courseImage:focus + .file-input-label,
+        #courseImage:valid + .file-input-label {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+
+        .image-preview {
+            margin-top: 10px;
+            max-width: 100%;
+            display: none;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .image-preview p {
+            margin: 5px 0;
+            font-style: italic;
+            color: #666;
+        }
+
+        .sidebar-nav {
+            list-style-type: none;
+            margin-top: 2rem;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-nav button {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background-color: transparent;
+            color: var(--text-gray);
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .sidebar-nav button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+        }
+
+        .action-buttons {
+            margin-bottom: 2rem;
+        }
+
+        .action-buttons .button {
+            margin-right: 1rem;
+        }
+        .course-tags {
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .course-tag {
+            display: inline-block;
+            background-color: #111827;
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .action-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            padding: 10px;
+            border: 1px solid #979797;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 250px;
+        }
+
+        .course-item {
+            cursor: pointer;
+        }
+
+        .platform-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .platform-button {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .platform-button:hover {
+            transform: scale(1.1);
+        }
+
+        .platform-button.active {
+            filter: grayscale(100%);
+            transform: scale(0.9);
+        }
+
+        .webhook-link {
+            background-color: var(--bg-dark);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .webhook-link pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .webhook-link code {
+            display: block;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .how-to-configure {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .how-to-configure i {
+            margin-right: 5px;
+            color: #3365d1;
+        }
+
+        .how-to-configure a {
+            color: #3365d1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .how-to-configure a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h1 class="card-title">Admin Dashboard</h1>
+            <nav>
+                <ul class="sidebar-nav">
+                    <li>
+                        <button onclick="showCourses()">
+                            <i class="fas fa-book icon"></i> Cursos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showStudents()">
+                            <i class="fas fa-users icon"></i> Alunos
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <div class="dashboard-grid">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">Total de Cursos</span>
+                            <span class="stat-value" id="totalCourses">0</span>
+                        </div>
+                        <i class="fas fa-book fa-2x" style="color: var(--accent);"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">Total de Alunos</span>
+                            <span class="stat-value" id="totalStudents">0</span>
+                        </div>
+                        <i class="fas fa-users fa-2x" style="color: var(--accent);"></i>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h2 class="card-title">Estatísticas</h2>
+                    <canvas id="studentCourseChart"></canvas>
+                </div>
+            </div>
+
+            <div class="action-container">
+                <div class="action-buttons">
+                    <button class="button" id="newCourseBtn">
+                        <i class="fas fa-plus icon"></i> Criar Novo Curso
+                    </button>
+                    <button class="button" id="newStudentBtn">
+                        <i class="fas fa-user-plus icon"></i> Adicionar Novo Aluno
+                    </button>
+                </div>
+                <div class="search-container" style="display: none;">
+                    <input type="text" id="studentSearch" placeholder="Buscar alunos..." class="search-input">
+                </div>
+            </div>
+
+            <div class="card" id="courseListCard">
+                <h2 class="card-title">Cursos</h2>
+                <ul class="course-list" id="courseList">
+                    <!-- Course cards will be populated here -->
+                </ul>
+            </div>
+
+            <div class="card" id="studentListCard" style="display: none;">
+                <h2 class="card-title">Alunos</h2>
+                <ul class="student-list" id="studentList">
+                    <!-- Student cards will be populated here -->
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Course Modal -->
+    <div id="newCourseModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="card-title">Criar Novo Curso</h2>
+            <form id="newCourseForm">
+                <label for="courseName">Nome:</label>
+                <input type="text" id="courseName" name="name" required>
+                
+                <label for="courseDescription">Descrição:</label>
+                <textarea id="courseDescription" name="description" required></textarea>
+                
+                <div class="file-input-container">
+                    <input type="file" id="courseImage" name="image" accept="image/*" required>
+                    <label for="courseImage" class="file-input-label">
+                        <span class="file-input-icon"></span>
+                        <span class="file-input-text">Escolha uma imagem</span>
+                    </label>
+                    <div id="imagePreview" class="image-preview"></div>
+                    <label for="courseImage">Recomendado 16:9(455x256)</label>
+                </div>
+                
+                <button type="submit" class="button">Criar Curso</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Student Modal -->
+    <div id="newStudentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="card-title">Adicionar Novo Aluno</h2>
+            <form id="newStudentForm">
+                <label for="studentEmail">Email:</label>
+                <input type="email" id="studentEmail" name="email" required>
+                
+                <label for="studentPassword">Senha:</label>
+                <input type="password" id="studentPassword" name="password" required>
+                
+                <label for="studentName">Nome:</label>
+                <input type="text" id="studentName" name="name" required>
+
+                <label for="studentCourses">Cursos:</label>
+                <select id="studentCourses" name="courses" required>
+                    <!-- Opções de cursos serão adicionadas dinamicamente -->
+                </select>
+                
+                <button type="submit" class="button">Adicionar Aluno</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+        <div id="editStudentModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 class="card-title">Editar Aluno</h2>
+                <form id="editStudentForm">
+                    <input type="hidden" id="editStudentId" name="id">
+                    
+                    <label for="editAction">Ação:</label>
+                    <select id="editAction" name="action" required>
+                        <option value="update">Atualizar Informações</option>
+                        <option value="include">Incluir em Curso</option>
+                    </select>
+
+                    <div id="updateFields">
+                        <label for="editStudentEmail">Email:</label>
+                        <input type="email" id="editStudentEmail" name="email" required>
+                        
+                        <label for="editStudentPassword">Nova Senha (deixe em branco para manter a atual):</label>
+                        <input type="password" id="editStudentPassword" name="password">
+                        
+                        <label for="editStudentName">Nome:</label>
+                        <input type="text" id="editStudentName" name="name" required>
+                    </div>
+
+                    <label for="editStudentCourses">Curso:</label>
+                    <select id="editStudentCourses" name="course" required>
+                        <!-- Opções de cursos serão adicionadas dinamicamente -->
+                    </select>
+                    
+                    <button type="submit" class="button">Salvar Alterações</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Webhook Modal -->
+        <div id="webhookModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 class="card-title">Webhook</h2>
+                <div class="how-to-configure">
+                    <i class="fas fa-info-circle"></i>
+                    <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">Como configurar</a>
+                </div>
+                <p>Escolha a plataforma</p>
+                <div class="platform-buttons">
+                    <img src="/static/fixed/hotmart.png" alt="Hotmart" class="platform-button" data-platform="hotmart">
+                    <img src="/static/fixed/kiwify.png" alt="Kiwify" class="platform-button" data-platform="kiwify">
+                    <img src="/static/fixed/perfectpay.png" alt="Perfect Pay" class="platform-button" data-platform="perfectpay">
+                    <img src="/static/fixed/kirvano.png" alt="Kirvano" class="platform-button" data-platform="kirvano">
+                    <img src="/static/fixed/monetizze.png" alt="Monetizze" class="platform-button" data-platform="monetizze">
+                    <img src="/static/fixed/lastlink.png" alt="LastLink" class="platform-button" data-platform="lastlink">
+                    <img src="/static/fixed/active.webp" alt="ActiveCampaign" class="platform-button" data-platform="manual">
+                    <img src="/static/fixed/n8n.png" alt="n8n" class="platform-button" data-platform="manual">
+                    <img src="/static/fixed/payt.png" alt="Payt" class="platform-button" data-platform="payt">
+                    <img src="/static/fixed/zapier.png" alt="zapier" class="platform-button" data-platform="manual">
+                </div>
+                <div id="webhookLink" class="webhook-link" style="display: none;">
+                    <pre><code id="webhookUrl"></code></pre>
+                </div>
+            </div>
+        </div>
+    
+    <script>
+        // Fetch courses
+        function fetchCourses() {
+            fetch('/admin/courses')
+                .then(response => response.json())
+                .then(data => {
+                    populateCourseList(data);
+                    updateTotals(data, null);
+                });
+        }
+
+        // Fetch courses for multi-select
+        function fetchCoursesForSelect() {
+            fetch('/admin/courses')
+                .then(response => response.json())
+                .then(data => {
+                    const selectElement = document.getElementById('studentCourses');
+                    selectElement.innerHTML = '';
+                    data.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.id;
+                        option.textContent = course.name;
+                        selectElement.appendChild(option);
+                    });
+                });
+        }
+
+        // Populate course list
+        function populateCourseList(courses) {
+            const courseList = document.getElementById('courseList');
+            courseList.innerHTML = '';
+            courses.forEach(course => {
+                const li = document.createElement('li');
+                li.className = 'course-item';
+                li.innerHTML = `
+                    <img src="${course.image_url || '/static/default-course-image.jpg'}" alt="${course.name}" class="course-image">
+                    <div class="course-content">
+                        <h3 class="course-title">${course.name}</h3>
+                        <div class="card-buttons">
+                            <button class="card-button webhook" onclick="openWebhookModal(${course.id})" title="Webhook">
+                                <i class="fas fa-link"></i> Webhook
+                            </button>
+                            <button class="card-button edit" onclick="editCourse(${course.id})" title="Editar curso">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="card-button delete" onclick="deleteCourse(${course.id})" title="Excluir curso">
+                                <i class="fas fa-trash-alt"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Adiciona o evento de clique ao card
+                li.addEventListener('click', function(event) {
+                    // Verifica se o clique não foi em um dos botões
+                    if (!event.target.closest('.card-button')) {
+                        editCourse(course.id);
+                    }
+                });
+                
+                courseList.appendChild(li);
+            });
+        }
+
+        // Delete course
+        function deleteCourse(id) {
+            if (confirm('Tem certeza que deseja excluir este curso?')) {
+                fetch(`/admin/course/${id}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchCourses();
+                        } else {
+                            alert('Erro ao excluir o curso');
+                        }
+                    });
+            }
+        }
+
+        // Edit course
+        function editCourse(id) {
+            window.location.href = `/admin/course/${id}/modification`;
+        }
+
+        // Update totals
+        function updateTotals(courses, students) {
+            if (courses) {
+                document.getElementById('totalCourses').textContent = courses.length;
+            }
+            if (students) {
+                document.getElementById('totalStudents').textContent = students.length;
+            }
+        }
+
+        let allStudents = [];
+
+        // Show courses
+        function showCourses() {
+            document.getElementById('courseListCard').style.display = 'block';
+            document.getElementById('studentListCard').style.display = 'none';
+            document.querySelector('.search-container').style.display = 'none';
+        }
+
+        // Show students
+        function showStudents() {
+            document.getElementById('courseListCard').style.display = 'none';
+            document.getElementById('studentListCard').style.display = 'block';
+            document.querySelector('.search-container').style.display = 'block';
+            fetchStudents();
+        }
+
+        // Fetch students
+        function fetchStudents() {
+            fetch('/admin/students')
+                .then(response => response.json())
+                .then(data => {
+                    allStudents = data;
+                    populateStudentList(allStudents);
+                    updateTotals(null, allStudents);
+                });
+        }
+
+        // Populate student list
+        function populateStudentList(students) {
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+            students.forEach(student => {
+                const li = document.createElement('li');
+                li.className = 'student-item';
+                
+                const courseTags = student.courses.map(course => 
+                    `<span class="course-tag">${course.name}</span>`
+                ).join('');
+                
+                li.innerHTML = `
+                    <img src="https://cdn-icons-png.flaticon.com/512/11820/11820206.png" alt="${student.name}" class="student-image">
+                    <div class="student-content">
+                        <h3 class="student-name">${student.name}</h3>
+                        <p class="student-email">${student.email}</p>
+                        <div class="course-tags">${courseTags}</div>
+                        <div class="card-buttons">
+                            <button class="card-button edit" onclick="editStudent(${student.id})" title="Editar aluno">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="card-button delete" onclick="deleteStudent(${student.id})" title="Excluir aluno">
+                                <i class="fas fa-trash-alt"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                `;
+                studentList.appendChild(li);
+            });
+        }
+
+        function filterStudents(searchTerm) {
+            const filteredStudents = allStudents.filter(student => 
+                student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                student.courses.some(course => course.name.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            populateStudentList(filteredStudents);
+        }
+
+        // Adicionar event listener para o campo de busca
+        document.getElementById('studentSearch').addEventListener('input', function(e) {
+            filterStudents(e.target.value);
+        });
+
+        // Edit student
+        function editStudent(id) {
+            fetch(`/admin/student/${id}`)
+                .then(response => response.json())
+                .then(student => {
+                    document.getElementById('editStudentId').value = student.id;
+                    document.getElementById('editStudentEmail').value = student.email;
+                    document.getElementById('editStudentName').value = student.name;
+                    document.getElementById('editStudentPassword').value = '';
+                    
+                    fetchAllCourses().then(() => {
+                        const courseSelect = document.getElementById('editStudentCourses');
+                        courseSelect.value = student.courses[0] || '';  // Assume que o aluno está em apenas um curso
+                    });
+                    
+                    document.getElementById('editStudentModal').style.display = 'block';
+                });
+        }
+
+        function fetchAllCourses() {
+            return fetch('/admin/all-courses')
+                .then(response => response.json())
+                .then(courses => {
+                    const courseSelect = document.getElementById('editStudentCourses');
+                    courseSelect.innerHTML = '';
+                    courses.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.id;
+                        option.textContent = course.name;
+                        courseSelect.appendChild(option);
+                    });
+                });
+        }
+
+        document.getElementById('editAction').addEventListener('change', function() {
+            const updateFields = document.getElementById('updateFields');
+            if (this.value === 'update') {
+                updateFields.style.display = 'block';
+            } else {
+                updateFields.style.display = 'none';
+            }
+        });
+
+        // Delete student
+        function deleteStudent(id) {
+            if (confirm('Tem certeza que deseja excluir este aluno?')) {
+                fetch(`/admin/student/${id}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchStudents();
+                        } else {
+                            alert('Erro ao excluir o aluno');
+                        }
+                    });
+            }
+        }
+
+        // Modal functionality
+        const newCourseModal = document.getElementById('newCourseModal');
+        const newStudentModal = document.getElementById('newStudentModal');
+        const editStudentModal = document.getElementById('editStudentModal');
+        const newCourseBtn = document.getElementById('newCourseBtn');
+        const newStudentBtn = document.getElementById('newStudentBtn');
+        const closeBtns = document.getElementsByClassName('close');
+
+        newCourseBtn.onclick = () => newCourseModal.style.display = 'block';
+        newStudentBtn.onclick = () => newStudentModal.style.display = 'block';
+
+        for (let closeBtn of closeBtns) {
+            closeBtn.onclick = function() {
+                newCourseModal.style.display = 'none';
+                newStudentModal.style.display = 'none';
+                editStudentModal.style.display = 'none';
+            }
+        }
+
+        let currentCourseId;
+
+        function openWebhookModal(courseId) {
+            currentCourseId = courseId;
+            document.getElementById('webhookModal').style.display = 'block';
+            document.getElementById('webhookLink').style.display = 'none';
+        }
+
+        document.querySelectorAll('.platform-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const platform = this.dataset.platform;
+                const domain = window.location.hostname === 'localhost' ? 'localhost:3000' : window.location.hostname;
+                const webhookUrl = `https://${domain}/webhook/${platform}/${currentCourseId}`;
+                
+                document.querySelectorAll('.platform-button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                const webhookLinkElement = document.getElementById('webhookLink');
+                const webhookUrlElement = document.getElementById('webhookUrl');
+                webhookUrlElement.textContent = webhookUrl;
+                webhookLinkElement.style.display = 'block';
+            });
+        });
+
+        document.getElementById('webhookUrl').addEventListener('click', function() {
+            const textArea = document.createElement('textarea');
+            textArea.value = this.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            this.textContent = 'Webhook Copiado com Sucesso!';
+            setTimeout(() => {
+                this.textContent = this.dataset.originalText;
+            }, 2000);
+        });
+
+        // Adicione este código à sua lógica existente de fechamento de modal
+        document.querySelector('#webhookModal .close').onclick = function() {
+            document.getElementById('webhookModal').style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('webhookModal')) {
+                document.getElementById('webhookModal').style.display = 'none';
+            }
+            if (event.target == newCourseModal) {
+                newCourseModal.style.display = 'none';
+            }
+            if (event.target == newStudentModal) {
+                newStudentModal.style.display = 'none';
+            }
+            if (event.target == editStudentModal) {
+                editStudentModal.style.display = 'none';
+            }
+        }
+
+        // Form submissions
+        document.getElementById('newCourseForm').onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/admin/course', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    newCourseModal.style.display = 'none';
+                    fetchCourses();
+                } else {
+                    alert('Erro ao criar o curso');
+                }
+            });
+        };
+
+        document.getElementById('newStudentForm').onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const selectedCourse = document.getElementById('studentCourses').value;
+            formData.set('courses', selectedCourse);  // Usamos 'set' em vez de 'append' para substituir o valor existente
+            
+            fetch('/admin/student', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    newStudentModal.style.display = 'none';
+                    fetchStudents();
+                } else {
+                    alert('Erro ao adicionar o aluno: ' + data.message);
+                }
+            });
+        };
+
+        document.getElementById('editStudentForm').onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const studentId = formData.get('id');
+            
+            fetch(`/admin/student/${studentId}`, {
+                method: 'PUT',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('editStudentModal').style.display = 'none';
+                    fetchStudents();
+                } else {
+                    alert('Erro ao atualizar o aluno: ' + data.message);
+                }
+            });
+        };
+
+        // Call fetchCoursesForSelect when opening modals
+        newStudentBtn.onclick = () => {
+            newStudentModal.style.display = 'block';
+            fetchCoursesForSelect();
+        };
+
+        // Pré-visualizar a imagem no modal de criar curso
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('courseImage');
+            const preview = document.getElementById('imagePreview');
+            const fileInputText = document.querySelector('.file-input-text');
+
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.innerHTML = `<img src="${e.target.result}" alt="Pré-visualização da imagem">`;
+                            preview.style.display = 'block';
+                        }
+                        reader.readAsDataURL(file);
+                        fileInputText.textContent = file.name;
+                    } else {
+                        preview.innerHTML = `<p>Arquivo selecionado: ${file.name}</p>`;
+                        preview.style.display = 'block';
+                        fileInputText.textContent = 'Arquivo não é uma imagem';
+                    }
+                } else {
+                    preview.style.display = 'none';
+                    fileInputText.textContent = 'Escolha uma imagem';
+                }
+            });
+        });
+
+        function createStudentCourseChart() {
+            fetch('/admin/course-students-stats')
+                .then(response => response.json())
+                .then(data => {
+                    const courseNames = data.map(item => item.course_name);
+                    const studentCounts = data.map(item => item.student_count);
+
+                    const ctx = document.getElementById('studentCourseChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: courseNames,
+                            datasets: [{
+                                label: 'Número de Alunos',
+                                data: studentCounts,
+                                backgroundColor: 'rgba(185, 28, 28, 0.6)',
+                                borderColor: 'rgba(185, 28, 28, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(context) {
+                                            return context[0].label.length > 20 ? 
+                                                context[0].label.substr(0, 20) + '...' : 
+                                                context[0].label;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        font: {
+                                            size: 10
+                                        }
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        callback: function(value, index, values) {
+                                            return this.getLabelForValue(value).substr(0, 15) + '...';
+                                        },
+                                        maxRotation: 0,
+                                        minRotation: 0,
+                                        font: {
+                                            size: 10
+                                        }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        // Initialize
+        fetchCourses();
+        fetchStudents();
+        createStudentCourseChart();
+    </script>
+</body>
+</html>

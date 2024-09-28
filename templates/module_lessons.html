@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ current_lesson.title }} - {{ course.name }}</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.vidstack.io/player.css" />
+    <link rel="stylesheet" href="https://cdn.vidstack.io/plyr.css" />
+</head>
+<body class="min-h-screen bg-[#111827] text-white">
+    <nav class="bg-[#111827] p-4 flex items-center justify-between">
+        <a href="{{ url_for('course_view', course_id=course.id) }}" class="text-gray-300 hover:text-white bg-transparent hover:bg-white/10 px-3 py-2 rounded-md flex items-center">
+            <i data-lucide="chevron-left" class="mr-2 h-4 w-4"></i> Voltar para Módulos
+        </a>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="lg:flex lg:space-x-8">
+            <div class="lg:w-3/4">
+                <div class="relative aspect-video bg-black">
+                    <div id="target"></div>
+                </div>
+
+                <div class="bg-[#1F2937] p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        {% if current_lesson.order > 1 %}
+                        <a href="{{ url_for('module_view', course_id=course.id, module_id=module.id, lesson_order=current_lesson.order-1) }}" class="text-gray-300 hover:text-white">
+                            <i data-lucide="skip-back" class="h-4 w-4"></i>
+                        </a>
+                        {% endif %}
+                        {% if current_lesson.order < lessons|length %}
+                        <a href="{{ url_for('module_view', course_id=course.id, module_id=module.id, lesson_order=current_lesson.order+1) }}" class="text-gray-300 hover:text-white">
+                            <i data-lucide="skip-forward" class="h-4 w-4"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    <button id="markAsCompletedBtn" class="text-gray-300 hover:text-white bg-transparent hover:bg-white/10 px-3 py-2 rounded-md flex items-center {% if lesson_completed %}opacity-50 cursor-not-allowed{% endif %}" {% if lesson_completed %}disabled{% endif %}>
+                        <i data-lucide="check-circle" class="mr-2 h-4 w-4"></i>
+                        {% if lesson_completed %}
+                            Já assistiu
+                        {% else %}
+                            Marcar como concluído
+                        {% endif %}
+                    </button>
+                </div>
+
+                <div class="bg-[#1F2937] p-6 mt-4">
+                    <h3 class="text-xl font-bold text-white mb-4">{{ current_lesson.title }}</h3>
+                    <p class="text-gray-300">{{ formatted_description | safe }}</p>
+
+                    {% if document %}
+                    <div class="mt-4">
+                        <a href="{{ url_for('static', filename='uploads/' + document.filename) }}" 
+                        download="{{ document.filename }}"
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-300">
+                            <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+                            Baixar material complementar
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="lg:w-1/4 mt-8 lg:mt-0">
+                <div class="bg-[#1F2937] p-4">
+                    <h3 class="text-xl font-bold text-white mb-4">{{ module.name }}</h3>
+                    <div class="space-y-2">
+                        {% for lesson in lessons %}
+                        <a href="{{ url_for('module_view', course_id=course.id, module_id=module.id, lesson_order=lesson.order) }}" 
+                           class="flex items-center p-2 rounded {% if lesson.order == current_lesson.order %}bg-[#374151]{% else %}hover:bg-[#374151]{% endif %}">
+                            <div class="flex-1">
+                                <h4 class="text-white font-medium">{{ lesson.title }}</h4>
+                                <!-- Aqui você pode adicionar a duração da lição se tiver essa informação -->
+                            </div>
+                            {% if lesson.order == current_lesson.order %}
+                            <i data-lucide="play" class="h-4 w-4 text-white"></i>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializa os ícones do Lucide
+        lucide.createIcons();
+
+        // Lógica para o botão "Marcar como concluído"
+        const markAsCompletedBtn = document.getElementById('markAsCompletedBtn');
+        markAsCompletedBtn.addEventListener('click', function() {
+            if (this.disabled) return;
+
+            fetch('/mark_lesson_completed', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lesson_id: {{ current_lesson.id }}
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.textContent = 'Já assistiu';
+                    this.disabled = true;
+                    this.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    alert('Erro ao marcar aula como concluída. Tente novamente.');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Erro ao marcar aula como concluída. Tente novamente.');
+            });
+        });
+    </script>
+
+    <script type="module">
+      import { PlyrLayout, VidstackPlayer } from 'https://cdn.vidstack.io/player';
+
+      function getYouTubeVideoId(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+      }
+
+      const videoUrl = "{{ current_lesson.video_url }}";
+      const videoId = getYouTubeVideoId(videoUrl);
+
+      const player = await VidstackPlayer.create({
+        target: '#target',
+        title: '{{ current_lesson.title }}',
+        src: videoUrl,
+        poster: `https://i3.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+        layout: new PlyrLayout({
+          thumbnails: 'https://files.vidstack.io/sprite-fight/thumbnails.vtt',
+        }),
+      });
+    </script>
+</body>
+</html>

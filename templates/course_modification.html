@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificação de Curso</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #111827;
+            --bg-medium: #1F2937;
+            --bg-light: #374151;
+            --accent: #B91C1C;
+            --accent-hover: #991B1B;
+            --text-light: #ffffff;
+            --text-gray: #9CA3AF;
+            --border-color: #4B5563;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--text-light);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card {
+            background-color: var(--bg-medium);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .button {
+            background-color: var(--accent);
+            color: var(--text-light);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .button + .button {
+            margin-left: 1rem;
+        }
+
+        #moduleList {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-medium);
+            margin: 5% auto;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .close {
+            color: var(--text-gray);
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: var(--text-light);
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+
+        form input[type="text"],
+        form input[type="url"],
+        form textarea,
+        form select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            background-color: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-light);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        form input[type="text"]:focus,
+        form input[type="url"]:focus,
+        form textarea:focus,
+        form select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        form input[type="file"] {
+            margin-bottom: 1.5rem;
+        }
+
+        #preview {
+            background-color: var(--bg-medium);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .button {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .button + .button {
+                margin-left: 0;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+        }
+
+        .module h3 {
+            margin-bottom: 1rem;
+        }
+
+        /* Estilos para módulos */
+        .module {
+            background-color: var(--bg-light);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .module:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .module h3 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .module-title {
+            display: flex;
+            align-items: center;
+        }
+
+        .module-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .drag-handle {
+            cursor: move;
+            padding: 0.25rem 0.5rem;
+            color: var(--text-gray);
+            font-size: 1.2rem;
+        }
+
+        /* Estilos para os botões dos módulos */
+        .module button {
+            background-color: transparent;
+            color: var(--text-gray);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .module button:hover {
+            background-color: var(--accent);
+            color: var(--text-light);
+            border-color: var(--accent);
+        }
+
+        .module button[onclick*="addLesson"] {
+            background-color: var(--accent);
+            color: var(--text-light);
+            border-color: var(--accent);
+        }
+
+        .module button[onclick*="addLesson"]:hover {
+            background-color: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        /* Estilos para aulas */
+        .lesson {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-medium);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .lesson:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .lesson-title {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .lesson-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lesson button {
+            background-color: transparent;
+            color: var(--text-gray);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .lesson button:hover {
+            background-color: var(--accent);
+            color: var(--text-light);
+            border-color: var(--accent);
+        }
+
+        /* Ícones para os botões */
+        .module button::before,
+        .lesson button::before {
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            margin-right: 0.3rem;
+        }
+
+        .module button[onclick*="edit"]::before,
+        .lesson button[onclick*="edit"]::before {
+            content: '\f044'; /* Ícone de edição */
+        }
+
+        .module button[onclick*="delete"]::before,
+        .lesson button[onclick*="delete"]::before {
+            content: '\f1f8'; /* Ícone de lixeira */
+        }
+
+        .module button[onclick*="addLesson"]::before {
+            content: '\f067'; /* Ícone de adição */
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .module h3,
+            .lesson {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .module-buttons,
+            .lesson-buttons {
+                margin-top: 0.5rem;
+                align-self: flex-end;
+            }
+
+            .module button,
+            .lesson button {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+            }
+        }
+
+        /* Estilos gerais do formulário */
+        #moduleForm {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        /* Estilos para o input de arquivo */
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        #moduleImage {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background-color: #e0e0e0;
+            border-color: #999;
+        }
+
+        .file-input-text {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .file-input-icon::before {
+            content: "📁";
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+
+        #moduleImage:focus + .file-input-label,
+        #moduleImage:valid + .file-input-label {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+
+        /* Estilos para a pré-visualização da imagem */
+        .image-preview {
+            margin-top: 10px;
+            max-width: 100%;
+            display: none;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .image-preview p {
+            margin: 5px 0;
+            font-style: italic;
+            color: #666;
+        }
+        .navbar {
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .navbar-brand {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/admin" class="navbar-brand"> < Voltar ao admin</a>
+    </nav>
+
+    <div class="container">
+        <h1>Edit: <span id="courseName">Nome do Curso</span></h1>
+        
+        <div class="card">
+            <button id="addModuleBtn" class="button">Adicionar Módulo</button>
+            <button id="previewBtn" class="button">Pré-visualizar</button>
+        </div>
+
+        <div id="moduleList">
+            <!-- Módulos serão adicionados aqui dinamicamente -->
+        </div>
+
+        <!-- Modal para adicionar/editar módulo -->
+    <div id="moduleModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="moduleModalTitle">Adicionar Novo Módulo</h2>
+            <form id="moduleForm">
+                <input type="hidden" id="moduleId">
+                <div class="form-group">
+                    <label for="moduleName">Nome do Módulo:</label>
+                    <input type="text" id="moduleName" name="name" required>
+                </div>
+                <div class="form-group file-input-container">
+                    <label for="moduleImage">Imagem do Módulo:</label>
+                    <input type="file" id="moduleImage" name="image" accept="image/*">
+                    <label for="moduleImage" class="file-input-label">
+                        <span class="file-input-icon"></span>
+                        <span class="file-input-text">Escolha uma imagem</span>
+                    </label>
+                    <div id="moduleImagePreview" class="image-preview"></div>
+                    <label for="moduleImage">Recomendado 16:9(455x256)</label>
+                </div>
+                <button type="submit" class="button">Salvar Módulo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar/editar aula -->
+    <div id="lessonModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="lessonModalTitle">Adicionar Nova Aula</h2>
+            <form id="lessonForm">
+                <input type="hidden" id="lessonId">
+                <input type="hidden" id="lessonModuleId">
+                <label for="lessonTitle">Título:</label>
+                <input type="text" id="lessonTitle" name="title" required>
+                <br>
+                <label for="lessonDescription">Descrição:</label>
+                <textarea id="lessonDescription" name="description" required></textarea>
+                <br>
+                <label for="lessonVideoUrl">URL do Vídeo:</label>
+                <input type="url" id="lessonVideoUrl" name="video_url" required>
+                <br>
+                <label for="lessonVideoType">Plataforma de Vídeo:</label>
+                <select id="lessonVideoType" name="video_type">
+                    <option value="youtube">YouTube</option>
+                </select>
+                <br>
+                <label for="lessonDocuments">Anexar arquivo:</label>
+                <input type="file" id="lessonDocuments" name="documents" multiple>
+                <br>
+                <button type="submit" class="button">Salvar Aula</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script>
+        let courseId = {{ course.id }};
+        let courseData = {
+            id: courseId,
+            name: "{{ course.name }}",
+            modules: []
+        };
+
+        const moduleModal = document.getElementById("moduleModal");
+        const lessonModal = document.getElementById("lessonModal");
+        const addModuleBtn = document.getElementById("addModuleBtn");
+        const spans = document.getElementsByClassName("close");
+
+        addModuleBtn.onclick = function() {
+            openModuleModal();
+        }
+
+        for (let span of spans) {
+            span.onclick = function() {
+                moduleModal.style.display = "none";
+                lessonModal.style.display = "none";
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target == moduleModal || event.target == lessonModal) {
+                moduleModal.style.display = "none";
+                lessonModal.style.display = "none";
+            }
+        }
+
+        function openModuleModal(moduleId = null) {
+            const form = document.getElementById('moduleForm');
+            const title = document.getElementById('moduleModalTitle');
+            
+            if (moduleId) {
+                const module = courseData.modules.find(m => m.id === moduleId);
+                title.textContent = 'Editar Módulo';
+                document.getElementById('moduleId').value = moduleId;
+                document.getElementById('moduleName').value = module.name;
+            } else {
+                title.textContent = 'Adicionar Novo Módulo';
+                form.reset();
+                document.getElementById('moduleId').value = '';
+            }
+
+            moduleModal.style.display = "block";
+        }
+
+        function openLessonModal(moduleId, lessonId = null) {
+            const form = document.getElementById('lessonForm');
+            const title = document.getElementById('lessonModalTitle');
+            
+            document.getElementById('lessonModuleId').value = moduleId;
+
+            if (lessonId) {
+                const module = courseData.modules.find(m => m.id === moduleId);
+                const lesson = module.lessons.find(l => l.id === lessonId);
+                title.textContent = 'Editar Aula';
+                document.getElementById('lessonId').value = lessonId;
+                document.getElementById('lessonTitle').value = lesson.title;
+                document.getElementById('lessonDescription').value = lesson.description;
+                document.getElementById('lessonVideoUrl').value = lesson.video_url;
+                document.getElementById('lessonVideoType').value = lesson.video_type;
+            } else {
+                title.textContent = 'Adicionar Nova Aula';
+                form.reset();
+                document.getElementById('lessonId').value = '';
+            }
+
+            lessonModal.style.display = "block";
+        }
+
+        function fetchCourseData() {
+            fetch(`/admin/course/${courseId}/details`)
+                .then(response => response.json())
+                .then(data => {
+                    courseData = data;
+                    renderCourse();
+                });
+        }
+
+        function renderCourse() {
+            document.getElementById('courseName').textContent = courseData.name;
+            const moduleList = document.getElementById('moduleList');
+            moduleList.innerHTML = '';
+
+            courseData.modules.forEach((module) => {
+                const moduleElement = document.createElement('div');
+                moduleElement.className = 'module';
+                moduleElement.innerHTML = `
+                    <h3>
+                        <div class="module-title">
+                            <span class="drag-handle">☰</span>
+                            ${module.name}
+                        </div>
+                        <div class="module-buttons">
+                            <button onclick="editModule(${module.id})">Editar</button>
+                            <button onclick="deleteModule(${module.id})">Excluir</button>
+                            <button onclick="addLesson(${module.id})">Adicionar Aula</button>
+                        </div>
+                    </h3>
+                    <div class="lesson-list" id="lessonList-${module.id}"></div>
+                `;
+                moduleList.appendChild(moduleElement);
+
+                const lessonList = moduleElement.querySelector('.lesson-list');
+                module.lessons.forEach((lesson) => {
+                    const lessonElement = document.createElement('div');
+                    lessonElement.className = 'lesson';
+                    lessonElement.innerHTML = `
+                        <div class="lesson-title">
+                            <span class="drag-handle">☰</span>
+                            ${lesson.title}
+                        </div>
+                        <div class="lesson-buttons">
+                            <button onclick="editLesson(${module.id}, ${lesson.id})">Editar</button>
+                            <button onclick="deleteLesson(${module.id}, ${lesson.id})">Excluir</button>
+                        </div>
+                    `;
+                    lessonList.appendChild(lessonElement);
+                });
+
+                new Sortable(lessonList, {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    onEnd: function(evt) {
+                        const moduleId = parseInt(evt.target.id.split('-')[1]);
+                        reorderLessons(moduleId);
+                    }
+                });
+            });
+
+            new Sortable(moduleList, {
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: function(evt) {
+                    reorderModules();
+                }
+            });
+        }
+
+        document.getElementById('moduleForm').onsubmit = function(e) {
+            e.preventDefault();
+            const form = new FormData(this);
+            const moduleId = document.getElementById('moduleId').value;
+
+            const url = moduleId ? `/admin/module/${moduleId}` : `/admin/course/${courseId}/module`;
+            const method = moduleId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                body: form,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    moduleModal.style.display = "none";
+                    fetchCourseData();
+                    this.reset();
+                } else {
+                    alert('Erro ao salvar módulo');
+                }
+            });
+        }
+
+        document.getElementById('lessonForm').onsubmit = function(e) {
+            e.preventDefault();
+            const form = new FormData(this);
+            const lessonId = document.getElementById('lessonId').value;
+            const moduleId = document.getElementById('lessonModuleId').value;
+
+            const url = lessonId ? `/admin/lesson/${lessonId}` : `/admin/module/${moduleId}/lesson`;
+            const method = lessonId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                body: form,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    lessonModal.style.display = "none";
+                    fetchCourseData();
+                    this.reset();
+                } else {
+                    alert('Erro ao salvar aula');
+                }
+            });
+        }
+
+        function editModule(moduleId) {
+            openModuleModal(moduleId);
+        }
+
+        function deleteModule(moduleId) {
+            if (confirm("Tem certeza que deseja excluir este módulo?")) {
+                fetch(`/admin/module/${moduleId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchCourseData();
+                    } else {
+                        alert('Erro ao excluir módulo');
+                    }
+                });
+            }
+        }
+
+        function addLesson(moduleId) {
+            openLessonModal(moduleId);
+        }
+
+        function editLesson(moduleId, lessonId) {
+            openLessonModal(moduleId, lessonId);
+        }
+
+        function deleteLesson(moduleId, lessonId) {
+            if (confirm("Tem certeza que deseja excluir esta aula?")) {
+                fetch(`/admin/lesson/${lessonId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchCourseData();
+                    } else {
+                        alert('Erro ao excluir aula');
+                    }
+                });
+            }
+        }
+
+        function reorderModules() {
+            const newOrder = Array.from(document.querySelectorAll('.module')).map(module => parseInt(module.querySelector('button').getAttribute('onclick').match(/\d+/)[0]));
+            fetch(`/admin/reorder_modules`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ new_order: newOrder }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchCourseData();
+                } else {
+                    alert('Erro ao reordenar módulos');
+                }
+            });
+        }
+
+        function reorderLessons(moduleId) {
+            const newOrder = Array.from(document.querySelectorAll(`#lessonList-${moduleId} .lesson`)).map(lesson => parseInt(lesson.querySelector('button').getAttribute('onclick').match(/\d+/g)[1]));
+            fetch(`/admin/reorder_lessons`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ new_order: newOrder }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchCourseData();
+                } else {
+                    alert('Erro ao reordenar aulas');
+                }
+            });
+        }
+
+        function previewCourse() {
+            window.open('/preview_course/' + courseId, '_blank');
+        }
+
+        document.getElementById('addModuleBtn').addEventListener('click', function() {
+            openModuleModal();
+        });
+        document.getElementById('previewBtn').addEventListener('click', previewCourse);
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('moduleImage');
+            const preview = document.getElementById('moduleImagePreview');
+            const fileInputText = document.querySelector('.file-input-text');
+
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.innerHTML = `<img src="${e.target.result}" alt="Pré-visualização da imagem do módulo">`;
+                            preview.style.display = 'block';
+                        }
+                        reader.readAsDataURL(file);
+                        fileInputText.textContent = file.name;
+                    } else {
+                        preview.innerHTML = `<p>Arquivo selecionado: ${file.name}</p>`;
+                        preview.style.display = 'block';
+                        fileInputText.textContent = 'Arquivo não é uma imagem';
+                    }
+                } else {
+                    preview.style.display = 'none';
+                    fileInputText.textContent = 'Escolha uma imagem';
+                }
+            });
+        });
+
+        function previewCourse() {
+            window.open('/preview_course/' + courseId, '_blank');
+        }
+
+        document.getElementById('previewBtn').addEventListener('click', previewCourse);
+
+        fetchCourseData();
+    </script>
+</body>
+</html>

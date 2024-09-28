@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0 
+    command:
+      - "--api.insecure=true" 
+      - "--providers.docker=true" 
+      - "--providers.docker.exposedbydefault=false" 
+      - "--entrypoints.web.address=:80" 
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=seu_email@example.com" 
+      - "--certificatesresolvers.letsencrypt.acme.storage=acme.json" 
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true" 
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+    ports:
+      - "80:80"
+      - "443:443" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - ./letsencrypt:/letsencrypt 
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: wldigital
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Extreme123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`seu_dominio.com`)" 
+      - "traefik.http.routers.web.entrypoints=web,websecure" 
+      - "traefik.http.routers.web.tls=true" 
+      - "traefik.http.routers.web.tls.certresolver=letsencrypt" 
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
+    environment:
+      SQLALCHEMY_DATABASE_URI: postgresql://postgres:Extreme123@db:5432/wldigital
+    depends_on:
+      - db
+    networks:
+      - default 
+
+volumes:
+  postgres_data:
+  letsencrypt:
+
+networks:
+  default:
+    name: traefik_proxy
+    external: true

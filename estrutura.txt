@@ -1,0 +1,14 @@
+membros_area/
+│
+├── app.py
+├── database.py
+├── auth.py
+│
+├── templates/
+│   ├── installation.html
+│   ├── login.html
+│   ├── admin_panel.html
+│   ├── course_modification.html
+│   ├── dashboard.html
+│   ├── modules.html
+│   └── lesson.html
