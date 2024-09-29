@@ -586,7 +586,12 @@
                     <label for="courseImage">Recomendado 16:9(455x256)</label>
                 </div>
                 
-                <button type="submit" class="button">Criar Curso</button>
+                <button type="submit" class="button" id="createCourseBtn">
+                    <span class="button-text">Criar Curso</span>
+                    <span class="spinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                </button>
             </form>
         </div>
     </div>
@@ -986,6 +991,15 @@
         document.getElementById('newCourseForm').onsubmit = function(e) {
             e.preventDefault();
             const formData = new FormData(this);
+            const submitButton = document.getElementById('createCourseBtn');
+            const buttonText = submitButton.querySelector('.button-text');
+            const spinner = submitButton.querySelector('.spinner');
+
+            // Desabilita o botão e mostra o spinner
+            submitButton.disabled = true;
+            buttonText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+
             fetch('/admin/course', {
                 method: 'POST',
                 body: formData
@@ -993,11 +1007,32 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Reseta o formulário
+                    this.reset();
+                    
+                    // Limpa a pré-visualização da imagem
+                    document.getElementById('imagePreview').innerHTML = '';
+                    document.getElementById('imagePreview').style.display = 'none';
+                    document.querySelector('.file-input-text').textContent = 'Escolha uma imagem';
+
+                    // Fecha o modal
                     newCourseModal.style.display = 'none';
+                    
+                    // Atualiza a lista de cursos
                     fetchCourses();
                 } else {
                     alert('Erro ao criar o curso');
                 }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao criar o curso');
+            })
+            .finally(() => {
+                // Reativa o botão e esconde o spinner
+                submitButton.disabled = false;
+                buttonText.style.display = 'inline-block';
+                spinner.style.display = 'none';
             });
         };
 
