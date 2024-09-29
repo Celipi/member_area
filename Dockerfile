@@ -18,7 +18,7 @@ COPY . .
 COPY wait-for-postgres.sh /wait-for-postgres.sh
 RUN chmod +x /wait-for-postgres.sh
 
-# Exponha a porta que o aplicativo usa
+# Exponha a porta do aplicativo
 EXPOSE 3000
 
 # Comando para rodar o aplicativo (corrigido)
