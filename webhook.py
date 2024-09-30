@@ -166,6 +166,20 @@ def process_lastlink_webhook(data, course_id):
     else:
         return jsonify({'message': 'Evento não processado'}), 200
 
+def process_activecampaign_webhook(data, course_id, status):
+    first_name = data.get('contact[first_name]', '')
+    email = data.get('contact[email]', '')
+
+    if not first_name or not email:
+        return jsonify({'error': 'Nome e email são obrigatórios'}), 400
+
+    if status not in ['add', 'remove']:
+        return jsonify({'error': 'Status deve ser "add" ou "remove"'}), 400
+
+    add = (status == 'add')
+
+    return process_student(first_name, email, course_id, add=add)
+
 def process_student(nome, email, course_id, add=True):
     student = Student.query.filter_by(email=email).first()
     if not student and add:
@@ -199,6 +213,25 @@ def process_student(nome, email, course_id, add=True):
 
     return jsonify({'message': message}), 200
 
+@webhook.route('/webhook/activecampaign/<int:course_id>', methods=['POST'])
+def receive_activecampaign_webhook(course_id):
+    status = request.args.get('status')
+
+    if not status:
+        return jsonify({'error': 'O parâmetro status é obrigatório'}), 400
+
+    # Obter os dados do corpo da requisição
+    data = request.form.to_dict()
+
+    if not data:
+        # Se não houver dados no form, tenta obter do JSON
+        data = request.get_json(force=True, silent=True)
+
+    if not data:
+        return jsonify({'error': 'Dados da requisição não encontrados'}), 400
+
+    return process_activecampaign_webhook(data, course_id, status)
+
 @webhook.route('/webhook/<platform>/<int:course_id>', methods=['POST'])
 def receive_webhook(platform, course_id):
     data = request.json
@@ -221,5 +254,10 @@ def receive_webhook(platform, course_id):
         return process_kirvano_webhook(data, course_id)
     elif platform == 'lastlink':
         return process_lastlink_webhook(data, course_id)
+    elif platform == 'activecampaign':
+        status = request.args.get('status')
+        if not status:
+            return jsonify({'error': 'O parâmetro status é obrigatório'}), 400
+        return process_activecampaign_webhook(data, course_id, status)
     else:
         return jsonify({'error': 'Plataforma não suportada'}), 400
