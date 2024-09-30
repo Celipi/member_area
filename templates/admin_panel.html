@@ -37,10 +37,39 @@
         }
 
         .sidebar {
+            position: relative;
             width: 250px;
             background-color: var(--bg-medium);
             padding: 2rem 1.5rem;
             border-right: 1px solid var(--border-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            padding: 0 1.5rem;
+        }
+
+        .sidebar-footer button {
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background-color: transparent;
+            color: var(--text-gray);
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .sidebar-footer button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
         }
 
         .main-content {
@@ -507,8 +536,16 @@
                     </li>
                 </ul>
             </nav>
+            <div class="sidebar-footer">
+                <button onclick="window.open('https://docs.membriumwl.com/', '_blank')">
+                    <i class="fas fa-file-alt icon"></i> Documentação
+                </button>
+                <button onclick="window.location.href='/logout'">
+                    <i class="fas fa-sign-out-alt icon"></i> Sair
+                </button>
+            </div>
         </aside>
-
+        
         <!-- Main content -->
         <main class="main-content">
             <div class="dashboard-grid">
