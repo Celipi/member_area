@@ -31,7 +31,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   web:
-    build: .
+    image: ghcr.io/celipi/member_area:latest
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=Host(`seu_dominio.com`)" 
