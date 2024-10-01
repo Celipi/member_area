@@ -19,7 +19,7 @@ COPY wait-for-postgres.sh /wait-for-postgres.sh
 RUN chmod +x /wait-for-postgres.sh
 
 # Exponha a porta do aplicativo
-EXPOSE 3000
+EXPOSE 3001
 
 # Comando para rodar o aplicativo (corrigido)
 CMD ["/bin/bash", "-c", "/wait-for-postgres.sh db && python app.py"]
