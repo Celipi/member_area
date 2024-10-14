@@ -14,12 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie o restante do código do aplicativo
 COPY . .
 
-# Copie o script de inicialização (se necessário)
-COPY wait-for-postgres.sh /wait-for-postgres.sh
-RUN chmod +x /wait-for-postgres.sh
-
 # Exponha a porta do aplicativo
 EXPOSE 3000
 
 # Comando para rodar o aplicativo (corrigido)
-CMD ["/bin/bash", "-c", "/wait-for-postgres.sh db && python app.py"]
+CMD ["python", "app.py"]
