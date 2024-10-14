@@ -9,7 +9,7 @@ cmd="$@"
 timeout=60 # Tempo limite em segundos
 count=0
 
-until PGPASSWORD="Extreme123" psql -h "$host" -U "postgres" -c '\q'; do
+until PGPASSWORD="${DB_PASSWORD}" psql -h "$host" -U "postgres" -c '\q'; do
   >&2 echo "PostgreSQL is unavailable - sleeping"
   sleep 1
   count=$((count + 1))
