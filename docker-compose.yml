@@ -51,6 +51,5 @@ volumes:
   letsencrypt:
 
 networks:
-  default:
-    name: traefik_proxy
+  traefik_proxy:
     external: true
