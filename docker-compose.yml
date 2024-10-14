@@ -26,9 +26,11 @@ services:
     environment:
       POSTGRES_DB: wldigital
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Extreme123
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" 
 
   web:
     image: ghcr.io/celipi/member_area:latest
@@ -40,11 +42,12 @@ services:
       - "traefik.http.routers.web.tls.certresolver=letsencrypt" 
       - "traefik.http.services.web.loadbalancer.server.port=3000"
     environment:
-      SQLALCHEMY_DATABASE_URI: postgresql://postgres:Extreme123@db:5432/wldigital
+       DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@db:5432/wldigital
     depends_on:
       - db
     networks:
       - default 
+      - traefik_proxy
 
 volumes:
   postgres_data:
