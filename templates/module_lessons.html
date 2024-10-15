@@ -162,14 +162,21 @@
         {% if current_lesson.has_button %}
         const buttonShowTime = {{ current_lesson.button_delay }};
         const ctaButton = document.getElementById('ctaButton');
+        let unsubscribe;
 
-        player.subscribe(({ currentTime }) => {
+        function checkTime({ currentTime }) {
             console.log('Current Time:', currentTime);
             if (currentTime >= buttonShowTime) {
                 ctaButton.style.display = 'block';
                 console.log('Button displayed at:', currentTime);
+                if (unsubscribe) {
+                    unsubscribe();
+                    console.log('Stopped monitoring time');
+                }
             }
-        });
+        }
+
+        unsubscribe = player.subscribe(checkTime);
         {% endif %}
     </script>
 </body>
