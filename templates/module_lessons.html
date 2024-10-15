@@ -146,6 +146,18 @@
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
+        function generateYouTubeThumbnailVTT(videoId) {
+            const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+
+            const vtt = `WEBVTT
+
+00:00:00.000 --> 99:59:59.999
+${thumbnailUrl}`;
+
+            const blob = new Blob([vtt], { type: 'text/vtt' });
+            return URL.createObjectURL(blob);
+        }
+
         const videoUrl = "{{ current_lesson.video_url }}";
         const videoId = getYouTubeVideoId(videoUrl);
 
@@ -154,6 +166,9 @@
             title: '{{ current_lesson.title }}',
             src: videoUrl,
             poster: `https://i3.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+            layout: new PlyrLayout({
+                thumbnails: generateYouTubeThumbnailVTT(videoId),
+            }),
         });
 
         {% if current_lesson.has_button %}
