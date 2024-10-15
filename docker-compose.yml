@@ -2,22 +2,23 @@ services:
   traefik:
     image: traefik:v3.0 
     command:
-      - "--api.insecure=true" 
-      - "--providers.docker=true" 
-      - "--providers.docker.exposedbydefault=false" 
-      - "--entrypoints.web.address=:80" 
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.email=seu_email@example.com" 
-      - "--certificatesresolvers.letsencrypt.acme.storage=acme.json" 
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true" 
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-
+      - "--certificatesresolvers.letsencrypt.acme.email=seu_email@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443" 
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock 
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
       - ./letsencrypt:/letsencrypt 
+    networks:
+      - traefik_proxy
 
   db:
     image: postgres:17
@@ -41,10 +42,10 @@ services:
     image: ghcr.io/celipi/member_area:latest
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`seu_dominio.com`)" 
-      - "traefik.http.routers.web.entrypoints=web,websecure" 
-      - "traefik.http.routers.web.tls=true" 
-      - "traefik.http.routers.web.tls.certresolver=letsencrypt" 
+      - "traefik.http.routers.web.rule=Host(`seu_dominio.com`)"
+      - "traefik.http.routers.web.entrypoints=web,websecure"
+      - "traefik.http.routers.web.tls=true"
+      - "traefik.http.routers.web.tls.certresolver=letsencrypt"
       - "traefik.http.services.web.loadbalancer.server.port=3000"
     environment:
        DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@db:5432/wldigital
