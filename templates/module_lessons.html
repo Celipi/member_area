@@ -163,21 +163,15 @@
         const buttonShowTime = {{ current_lesson.button_delay }};
         const ctaButton = document.getElementById('ctaButton');
 
-        function checkButtonDisplay(currentTime) {
-            if (currentTime >= buttonShowTime && ctaButton.style.display === 'none') {
-                ctaButton.style.display = 'block';
-            }
-        }
-
-        // Adiciona um listener para o evento de atualização de tempo
         player.addEventListener('timeupdate', () => {
             const currentTime = player.currentTime;
             console.log('Current Time:', currentTime);
-            checkButtonDisplay(currentTime);
-        });
 
-        // Expõe o player globalmente para debugging
-        window.player = player;
+            if (currentTime >= buttonShowTime && ctaButton.style.display === 'none') {
+                ctaButton.style.display = 'block';
+                console.log('Button displayed at:', currentTime);
+            }
+        });
         {% endif %}
     </script>
 </body>
