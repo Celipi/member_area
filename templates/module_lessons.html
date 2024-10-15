@@ -165,13 +165,10 @@
         let unsubscribe;
 
         function checkTime({ currentTime }) {
-            console.log('Current Time:', currentTime);
             if (currentTime >= buttonShowTime) {
                 ctaButton.style.display = 'block';
-                console.log('Button displayed at:', currentTime);
                 if (unsubscribe) {
                     unsubscribe();
-                    console.log('Stopped monitoring time');
                 }
             }
         }
