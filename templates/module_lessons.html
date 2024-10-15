@@ -24,7 +24,15 @@
                     <div id="target"></div>
                 </div>
 
-                <div class="bg-[#1F2937] p-4 flex items-center justify-between">
+                {% if current_lesson.has_button %}
+                <div id="ctaButton" class="mt-4 text-center" style="display: none;">
+                    <a href="{{ current_lesson.button_link }}" target="_blank" class="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-[90%]">
+                        {{ current_lesson.button_text }}
+                    </a>
+                </div>
+                {% endif %}
+
+                <div class="bg-[#1F2937] p-4 flex items-center justify-between mt-4">
                     <div class="flex items-center space-x-4">
                         {% if current_lesson.order > 1 %}
                         <a href="{{ url_for('module_view', course_id=course.id, module_id=module.id, lesson_order=current_lesson.order-1) }}" class="text-gray-300 hover:text-white">
@@ -119,6 +127,18 @@
                 alert('Erro ao marcar aula como concluída. Tente novamente.');
             });
         });
+
+        // Lógica para exibir o botão CTA com delay
+        {% if current_lesson.has_button %}
+        let buttonShowTime = {{ current_lesson.button_delay }};
+        const ctaButton = document.getElementById('ctaButton');
+
+        function checkButtonDisplay(currentTime) {
+            if (currentTime >= buttonShowTime && ctaButton.style.display === 'none') {
+                ctaButton.style.display = 'block';
+            }
+        }
+        {% endif %}
     </script>
 
     <script type="module">
@@ -142,6 +162,14 @@
           thumbnails: 'https://files.vidstack.io/sprite-fight/thumbnails.vtt',
         }),
       });
+
+      {% if current_lesson.has_button %}
+      // Adiciona um listener para o evento de atualização de tempo
+      player.addEventListener('timeupdate', (event) => {
+        const currentTime = event.detail.currentTime;
+        checkButtonDisplay(currentTime);
+      });
+      {% endif %}
     </script>
 </body>
 </html>

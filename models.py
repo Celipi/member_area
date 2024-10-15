@@ -34,6 +34,11 @@ class Lesson(db.Model):
     order = db.Column(db.Integer)
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
     documents = db.relationship('Document', backref='lesson', lazy=True, cascade="all, delete-orphan")
+    # Novas colunas para as opções extras
+    has_button = db.Column(db.Boolean, default=False)
+    button_text = db.Column(db.String(120))
+    button_link = db.Column(db.String(255))
+    button_delay = db.Column(db.Numeric(10, 0))
 
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -10,7 +10,6 @@ from utils import format_description
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -363,7 +362,29 @@ def create_lesson(module_id):
     video_url = request.form['video_url']
     video_type = request.form['video_type']
     
-    new_lesson = Lesson(title=title, description=description, video_url=video_url, video_type=video_type, module=module, order=len(module.lessons) + 1)
+    has_button = request.form.get('has_button', 'false').lower() == 'true'
+    button_text = request.form.get('button_text') if has_button else None
+    button_link = request.form.get('button_link') if has_button else None
+    button_delay = request.form.get('appearance_time')
+
+    # Converter para inteiro se não for None ou string vazia
+    if button_delay and button_delay.strip():
+        button_delay = int(button_delay)
+    else:
+        button_delay = None
+
+    new_lesson = Lesson(
+        title=title, 
+        description=description, 
+        video_url=video_url, 
+        video_type=video_type, 
+        module=module, 
+        order=len(module.lessons) + 1,
+        has_button=has_button,
+        button_text=button_text,
+        button_link=button_link,
+        button_delay=button_delay
+    )
     db.session.add(new_lesson)
     
     documents = request.files.getlist('documents')
@@ -375,14 +396,21 @@ def create_lesson(module_id):
             db.session.add(new_document)
     
     db.session.commit()
-    return jsonify({'success': True, 'lesson': {
-        'id': new_lesson.id,
-        'title': new_lesson.title,
-        'description': new_lesson.description,
-        'video_url': new_lesson.video_url,
-        'video_type': new_lesson.video_type,
-        'order': new_lesson.order
-    }})
+    return jsonify({
+        'success': True, 
+        'lesson': {
+            'id': new_lesson.id,
+            'title': new_lesson.title,
+            'description': new_lesson.description,
+            'video_url': new_lesson.video_url,
+            'video_type': new_lesson.video_type,
+            'order': new_lesson.order,
+            'has_button': new_lesson.has_button,
+            'button_text': new_lesson.button_text,
+            'button_link': new_lesson.button_link,
+            'button_delay': new_lesson.button_delay
+        }
+    })
 
 @app.route('/admin/lesson/<int:lesson_id>', methods=['PUT'])
 @admin_required
@@ -391,6 +419,18 @@ def update_lesson(lesson_id):
     lesson.title = request.form['title']
     lesson.description = request.form['description']
     lesson.video_url = request.form['video_url']
+    lesson.video_type = request.form['video_type']
+    
+    has_button = request.form.get('has_button', 'false').lower() == 'true'
+    lesson.has_button = has_button
+    lesson.button_text = request.form.get('button_text') if has_button else None
+    lesson.button_link = request.form.get('button_link') if has_button else None
+    button_delay = request.form.get('appearance_time')
+
+    if button_delay and button_delay.strip():
+        lesson.button_delay = int(button_delay)
+    else:
+        lesson.button_delay = None
     
     documents = request.files.getlist('documents')
     for doc in documents:
@@ -401,8 +441,21 @@ def update_lesson(lesson_id):
             db.session.add(new_document)
     
     db.session.commit()
-    flash('Aula atualizada com sucesso!', 'success')
-    return jsonify({'success': True})
+    return jsonify({
+        'success': True,
+        'lesson': {
+            'id': lesson.id,
+            'title': lesson.title,
+            'description': lesson.description,
+            'video_url': lesson.video_url,
+            'video_type': lesson.video_type,
+            'order': lesson.order,
+            'has_button': lesson.has_button,
+            'button_text': lesson.button_text,
+            'button_link': lesson.button_link,
+            'button_delay': lesson.button_delay
+        }
+    })
 
 @app.route('/admin/lesson/<int:lesson_id>', methods=['DELETE'])
 @admin_required
@@ -627,7 +680,11 @@ def module_view(course_id, module_id, lesson_order):
                            current_lesson=current_lesson,
                            formatted_description=formatted_description,
                            document=document,
-                           lesson_completed=lesson_completed)
+                           lesson_completed=lesson_completed,
+                           has_button=current_lesson.has_button,
+                           button_text=current_lesson.button_text,
+                           button_link=current_lesson.button_link,
+                           button_delay=current_lesson.button_delay)
 
 @app.route('/lesson/<int:lesson_id>')
 @student_required

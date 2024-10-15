@@ -442,6 +442,91 @@
             text-decoration: none;
             font-weight: bold;
         }
+        .toggle-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.toggle-label {
+    margin-right: 10px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-light);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--text-light);
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--accent);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Estilos para o input numérico (tempo em segundos) */
+.time-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-dark);
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.time-input::-webkit-inner-spin-button,
+.time-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.time-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
     </style>
 </head>
 <body>
@@ -497,20 +582,40 @@
                 <input type="hidden" id="lessonModuleId">
                 <label for="lessonTitle">Título:</label>
                 <input type="text" id="lessonTitle" name="title" required>
-                <br>
+                
                 <label for="lessonDescription">Descrição:</label>
                 <textarea id="lessonDescription" name="description" required></textarea>
-                <br>
+                
                 <label for="lessonVideoUrl">URL do Vídeo:</label>
                 <input type="url" id="lessonVideoUrl" name="video_url" required>
-                <br>
+                
                 <label for="lessonVideoType">Plataforma de Vídeo:</label>
                 <select id="lessonVideoType" name="video_type">
                     <option value="youtube">YouTube</option>
                 </select>
-                <br>
+                
                 <label for="lessonDocuments">Anexar arquivo:</label>
                 <input type="file" id="lessonDocuments" name="documents" multiple>
+                
+                <input type="hidden" id="hasButton" name="has_button" value="false">
+                <div class="toggle-container">
+                    <label for="extraOptionsToggle" class="toggle-label">Adicionar CTA:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="extraOptionsToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                
+                <div id="extraOptions" style="display: none;">
+                    <label for="buttonText">Texto do botão:</label>
+                    <input type="text" id="buttonText" name="button_text">
+                    
+                    <label for="buttonLink">Link do botão:</label>
+                    <input type="url" id="buttonLink" name="button_link">
+                    
+                    <label for="appearanceTime">Delay do botão (em segundos):</label>
+                    <input type="number" id="appearanceTime" name="appearance_time" min="0" class="time-input">
+                </div>
                 <br>
                 <button type="submit" class="button">Salvar Aula</button>
             </form>
@@ -549,6 +654,18 @@
             }
         }
 
+        function resetForm() {
+            const lessonForm = document.getElementById('lessonForm');
+            const extraOptionsToggle = document.getElementById('extraOptionsToggle');
+            const extraOptions = document.getElementById('extraOptions');
+            const hasButtonInput = document.getElementById('hasButton');
+
+            lessonForm.reset();
+            extraOptionsToggle.checked = false;
+            extraOptions.style.display = 'none';
+            hasButtonInput.value = 'false';
+        }
+
         function openModuleModal(moduleId = null) {
             const form = document.getElementById('moduleForm');
             const title = document.getElementById('moduleModalTitle');
@@ -570,6 +687,9 @@
         function openLessonModal(moduleId, lessonId = null) {
             const form = document.getElementById('lessonForm');
             const title = document.getElementById('lessonModalTitle');
+            const extraOptionsToggle = document.getElementById('extraOptionsToggle');
+            const extraOptions = document.getElementById('extraOptions');
+            const hasButtonInput = document.getElementById('hasButton');
             
             document.getElementById('lessonModuleId').value = moduleId;
 
@@ -582,10 +702,17 @@
                 document.getElementById('lessonDescription').value = lesson.description;
                 document.getElementById('lessonVideoUrl').value = lesson.video_url;
                 document.getElementById('lessonVideoType').value = lesson.video_type;
+                extraOptionsToggle.checked = lesson.has_button;
+                hasButtonInput.value = lesson.has_button.toString();
+                extraOptions.style.display = lesson.has_button ? 'block' : 'none';
+                if (lesson.has_button) {
+                    document.getElementById('buttonText').value = lesson.button_text || '';
+                    document.getElementById('buttonLink').value = lesson.button_link || '';
+                    document.getElementById('appearanceTime').value = lesson.button_delay || '';
+                }
             } else {
                 title.textContent = 'Adicionar Nova Aula';
-                form.reset();
-                document.getElementById('lessonId').value = '';
+                resetForm();
             }
 
             lessonModal.style.display = "block";
@@ -702,7 +829,7 @@
                 if (data.success) {
                     lessonModal.style.display = "none";
                     fetchCourseData();
-                    this.reset();
+                    resetForm();
                 } else {
                     alert('Erro ao salvar aula');
                 }
@@ -825,6 +952,29 @@
                 } else {
                     preview.style.display = 'none';
                     fileInputText.textContent = 'Escolha uma imagem';
+                }
+            });
+
+            const extraOptionsToggle = document.getElementById('extraOptionsToggle');
+            const extraOptions = document.getElementById('extraOptions');
+            const hasButtonInput = document.getElementById('hasButton');
+            const lessonForm = document.getElementById('lessonForm');
+
+            extraOptionsToggle.addEventListener('change', function() {
+                extraOptions.style.display = this.checked ? 'block' : 'none';
+                hasButtonInput.value = this.checked.toString();
+            });
+
+            lessonForm.addEventListener('submit', function(e) {
+                if (extraOptionsToggle.checked) {
+                    const buttonText = document.getElementById('buttonText').value;
+                    const buttonLink = document.getElementById('buttonLink').value;
+                    const appearanceTime = document.getElementById('appearanceTime').value;
+
+                    if (!buttonText || !buttonLink || !appearanceTime) {
+                        e.preventDefault();
+                        alert('Por favor, preencha todos os campos das opções extras.');
+                    }
                 }
             });
         });

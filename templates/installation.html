@@ -183,36 +183,53 @@
             var confirmPassword = document.getElementById('confirmPassword').value;
             var errorMessage = document.getElementById('errorMessage');
             var activationKey = document.getElementById('activation_key').value;
-
+    
             if (password !== confirmPassword) {
                 errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>As senhas não coincidem.</span>';
                 errorMessage.style.display = 'flex';
                 return;
             }
-
-            // Verificar a chave de ativação
-            fetch('https://n8n-n8n.gumktq.easypanel.host/webhook/03841fae-2776-498b-a6a3-7999fc5e695e', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ activation_key: activationKey })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.return === true) {
-                    // Se a chave for válida, envie o formulário
-                    document.getElementById('installationForm').submit();
-                } else {
-                    // Se a chave for inválida, mostre a mensagem de erro
-                    errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Chave de ativação incorreta ou já utilizada!</span>';
+    
+            // Função para obter o IP do usuário
+            function getUserIP(callback) {
+                fetch('https://api.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => callback(data.ip))
+                    .catch(error => {
+                        console.error('Erro ao obter IP:', error);
+                        callback(null);
+                    });
+            }
+    
+            // Obter o IP e fazer a requisição
+            getUserIP(function(ip) {
+                // Verificar a chave de ativação
+                fetch('https://n8n-n8n.gumktq.easypanel.host/webhook/03841fae-2776-498b-a6a3-7999fc5e695e', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        activation_key: activationKey,
+                        real_ip: ip || 'Não foi possível obter o IP'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.return === true) {
+                        // Se a chave for válida, envie o formulário
+                        document.getElementById('installationForm').submit();
+                    } else {
+                        // Se a chave for inválida, mostre a mensagem de erro
+                        errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Chave de ativação incorreta ou já utilizada!</span>';
+                        errorMessage.style.display = 'flex';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Erro ao verificar a chave de ativação. Tente novamente.</span>';
                     errorMessage.style.display = 'flex';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Erro ao verificar a chave de ativação. Tente novamente.</span>';
-                errorMessage.style.display = 'flex';
+                });
             });
         });
     </script>
