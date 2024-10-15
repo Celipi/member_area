@@ -163,7 +163,7 @@
         const buttonShowTime = {{ current_lesson.button_delay }};
         const ctaButton = document.getElementById('ctaButton');
 
-        player.addEventListener('timeupdate', () => {
+        player.subscribe('time-update', () => {
             if (player.currentTime >= buttonShowTime) {
                 ctaButton.style.display = 'block';
             }
