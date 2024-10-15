@@ -52,12 +52,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - uploads_data:/app/static/uploads
     networks:
       - traefik_proxy
 
 volumes:
   postgres_data:
   letsencrypt:
+  uploads_data:
 
 networks:
   traefik_proxy:
