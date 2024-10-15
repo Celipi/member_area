@@ -154,9 +154,6 @@
             title: '{{ current_lesson.title }}',
             src: videoUrl,
             poster: `https://i3.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
-            layout: new PlyrLayout({
-                thumbnails: 'https://www.youtube.com/storyboard/${videoId}/0.jpg',
-            }),
         });
 
         {% if current_lesson.has_button %}
