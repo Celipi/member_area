@@ -162,26 +162,30 @@
         {% if current_lesson.has_button %}
         const buttonShowTime = {{ current_lesson.button_delay }};
         const ctaButton = document.getElementById('ctaButton');
+        let buttonDisplayed = false;
 
         function checkButtonDisplay() {
+            if (buttonDisplayed) return;
+
             const currentTime = player.currentTime;
             console.log('Current Time:', currentTime);
 
-            if (currentTime >= buttonShowTime && ctaButton.style.display === 'none') {
-                ctaButton.style.display = 'flex';
+            if (currentTime >= buttonShowTime) {
+                ctaButton.style.display = 'block';
                 console.log('Button displayed at:', currentTime);
+                buttonDisplayed = true;
+                player.removeEventListener('timeupdate', checkButtonDisplay);
             }
-
-            requestAnimationFrame(checkButtonDisplay);
         }
 
         player.addEventListener('play', () => {
-            checkButtonDisplay();
+            player.addEventListener('timeupdate', checkButtonDisplay);
         });
 
         // Expose player to global scope for debugging
         window.player = player;
         {% endif %}
+
     </script>
 </body>
 
