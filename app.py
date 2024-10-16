@@ -4,8 +4,13 @@ from functools import wraps
 import os
 from datetime import datetime
 from models import db, Course, Admin, Student, Module, Lesson, Document, student_courses, student_lessons
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from utils import format_description
+import csv
+import json
+from flask import Response, stream_with_context
+import io
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -196,6 +201,17 @@ def update_course(course_id):
     flash('Curso atualizado com sucesso!', 'success')
     return jsonify({'success': True})
 
+@app.route('/admin/course/<int:course_id>', methods=['GET'])
+@admin_required
+def get_course(course_id):
+    course = Course.query.get_or_404(course_id)
+    return jsonify({
+        'id': course.id,
+        'name': course.name,
+        'description': course.description,
+        'image_url': url_for('static', filename=f'uploads/{course.image}') if course.image else None
+    })
+
 @app.route('/admin/course/<int:course_id>', methods=['DELETE'])
 @admin_required
 def delete_course(course_id):
@@ -209,13 +225,36 @@ def delete_course(course_id):
 @app.route('/admin/students', methods=['GET'])
 @admin_required
 def get_students():
-    students = Student.query.all()
-    return jsonify([{
-        'id': student.id,
-        'name': student.name,
-        'email': student.email,
-        'courses': [{'id': course.id, 'name': course.name} for course in student.courses]
-    } for student in students])
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    search = request.args.get('search', '')
+
+    query = Student.query
+
+    if search:
+        query = query.filter(or_(
+            Student.name.ilike(f'%{search}%'),
+            Student.email.ilike(f'%{search}%')
+        ))
+
+    students = query.order_by(Student.name).paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        'students': [{
+            'id': student.id,
+            'name': student.name,
+            'email': student.email,
+            'courses': [{'id': course.id, 'name': course.name} for course in student.courses]
+        } for student in students.items],
+        'pages': students.pages,
+        'current_page': page
+    })
+
+@app.route('/admin/total-students', methods=['GET'])
+@admin_required
+def get_total_students():
+    total = Student.query.count()
+    return jsonify({'total': total})
 
 @app.route('/admin/student', methods=['POST'])
 @admin_required
@@ -517,13 +556,6 @@ def update_student(student_id):
             student.email = request.form['email']
             if request.form['password']:
                 student.password = generate_password_hash(request.form['password'])
-            
-            course_id = request.form['course']
-            course = Course.query.get(course_id)
-            if not course:
-                return jsonify({'success': False, 'message': 'Curso não encontrado'}), 404
-            
-            student.courses = [course]  # Substitui todos os cursos pelo novo
         
         elif action == 'include':
             course_id = request.form['course']
@@ -533,6 +565,15 @@ def update_student(student_id):
             
             if course not in student.courses:
                 student.courses.append(course)
+        
+        elif action == 'remove':
+            course_id = request.form['course']
+            course = Course.query.get(course_id)
+            if not course:
+                return jsonify({'success': False, 'message': 'Curso não encontrado'}), 404
+            
+            if course in student.courses:
+                student.courses.remove(course)
         
         db.session.commit()
         return jsonify({'success': True, 'message': 'Aluno atualizado com sucesso'})
@@ -727,6 +768,12 @@ def get_all_courses():
         'name': course.name
     } for course in courses])
 
+@app.route('/admin/import-students')
+@admin_required
+@installation_required
+def import_students():
+    return render_template('import_students.html')
+
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     # Aqui você implementaria a lógica para redefinir a senha
@@ -749,6 +796,80 @@ def reset_password():
     db.session.commit()
 
     return jsonify({'success': True, 'message': 'Senha redefinida com sucesso!'})
+
+@app.route('/admin/import-students', methods=['GET', 'POST'])
+@admin_required
+@installation_required
+def import_students_csv():
+    if request.method == 'POST':
+        if 'csvFile' not in request.files:
+            return jsonify({'success': False, 'message': 'Nenhum arquivo enviado'})
+        
+        file = request.files['csvFile']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'Nenhum arquivo selecionado'})
+        
+        if file and file.filename.endswith('.csv'):
+            course_id = request.form.get('course')
+            if not course_id:
+                return jsonify({'success': False, 'message': 'Nenhum curso selecionado'})
+            
+            course = Course.query.get(course_id)
+            if not course:
+                return jsonify({'success': False, 'message': 'Curso não encontrado'})
+            
+            # Ler o conteúdo do arquivo antes de fechá-lo
+            file_content = file.read().decode("UTF8")
+            
+            def generate():
+                stream = io.StringIO(file_content)
+                csv_reader = csv.DictReader(stream)
+                
+                total_students = sum(1 for row in csv_reader)
+                stream.seek(0)
+                csv_reader = csv.DictReader(stream)
+                
+                imported_students = 0
+                
+                for row in csv_reader:
+                    name = row.get('name')
+                    email = row.get('email')
+                    
+                    if not name or not email:
+                        continue
+                    
+                    student = Student.query.filter_by(email=email).first()
+                    if student:
+                        if course not in student.courses:
+                            student.courses.append(course)
+                            imported_students += 1
+                    else:
+                        new_student = Student(name=name, email=email, password=generate_password_hash('senha123'))
+                        new_student.courses.append(course)
+                        db.session.add(new_student)
+                        imported_students += 1
+                    
+                    db.session.commit()
+                    
+                    yield json.dumps({
+                        'progress': {
+                            'imported': imported_students,
+                            'total': total_students
+                        }
+                    }) + '\n'
+                
+                yield json.dumps({
+                    'success': True,
+                    'message': f'{imported_students} alunos importados com sucesso',
+                    'imported': imported_students,
+                    'total': total_students
+                })
+            
+            return Response(stream_with_context(generate()), mimetype='application/json')
+        
+        return jsonify({'success': False, 'message': 'Arquivo inválido'})
+    
+    return render_template('import_students.html')
 
 @app.route('/mark_lesson_completed', methods=['POST'])
 @student_required

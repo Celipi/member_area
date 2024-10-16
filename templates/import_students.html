@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Alunos</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #111827;
+            --bg-medium: #1F2937;
+            --bg-light: #374151;
+            --accent: #B91C1C;
+            --text-light: #ffffff;
+            --text-gray: #9CA3AF;
+            --border-color: #4B5563;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 1rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .back-button:hover {
+            color: var(--text-light);
+        }
+
+        .card {
+            background-color: var(--bg-medium);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        select, input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            color: var(--text-light);
+        }
+
+        .button {
+            background-color: var(--accent);
+            color: var(--text-light);
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #8B1515;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: var(--bg-light);
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress {
+            width: 0;
+            height: 20px;
+            background-color: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .instructions {
+            background-color: var(--bg-light);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .instructions h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .instructions ul {
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/admin" class="back-button"><i class="fas fa-arrow-left"></i> Voltar para o Painel</a>
+        <h1>Importar Alunos</h1>
+        <div class="card">
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="course">Selecione o Curso:</label>
+                    <select id="course" name="course" required>
+                        <option value="">Selecione um curso</option>
+                        <!-- Opções de cursos serão preenchidas via JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="csvFile">Arquivo CSV:</label>
+                    <input type="file" id="csvFile" name="csvFile" accept=".csv" required>
+                </div>
+                <button type="submit" class="button">Importar Alunos</button>
+            </form>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText"></div>
+        </div>
+        <div class="instructions">
+            <h3>Instruções para o arquivo CSV:</h3>
+            <ul>
+                <li>O arquivo deve conter as colunas "name" e "email".</li>
+                <li>Cada linha deve representar um aluno.</li>
+                <li>A senha padrão para todos os alunos importados será "senha123".</li>
+                <li>Se um aluno já existir no sistema, ele será adicionado ao curso selecionado.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carregar cursos
+            fetch('/admin/all-courses')
+                .then(response => response.json())
+                .then(courses => {
+                    const courseSelect = document.getElementById('course');
+                    courses.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.id;
+                        option.textContent = course.name;
+                        courseSelect.appendChild(option);
+                    });
+                });
+    
+            // Manipular envio do formulário
+            const form = document.getElementById('importForm');
+            const submitButton = form.querySelector('button[type="submit"]');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+    
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+    
+                // Mudar o botão para ícone de loading
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importando...';
+                submitButton.disabled = true;
+    
+                // Resetar a barra de progresso
+                progressBar.style.width = '0%';
+                progressText.textContent = '0/0 Alunos Cadastrados';
+    
+                fetch('/admin/import-students', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+    
+                    function processText(result) {
+                        buffer += decoder.decode(result.value || new Uint8Array, {
+                            stream: !result.done
+                        });
+    
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop();
+    
+                        for (const line of lines) {
+                            try {
+                                const data = JSON.parse(line);
+                                if (data.progress) {
+                                    const percentage = (data.progress.imported / data.progress.total) * 100;
+                                    progressBar.style.width = percentage + '%';
+                                    progressText.textContent = `${data.progress.imported}/${data.progress.total} Alunos Cadastrados`;
+                                }
+                            } catch (e) {
+                                console.error('Erro ao processar linha:', line, e);
+                            }
+                        }
+    
+                        if (result.done) {
+                            try {
+                                const finalData = JSON.parse(buffer);
+                                if (finalData.success) {
+                                    alert('Importação concluída com sucesso!');
+                                } else {
+                                    alert('Erro na importação: ' + finalData.message);
+                                }
+                            } catch (e) {
+                                console.error('Erro ao processar resposta final:', buffer, e);
+                            }
+                            submitButton.innerHTML = 'Importar Alunos';
+                            submitButton.disabled = false;
+                            return;
+                        }
+    
+                        reader.read().then(processText);
+                    }
+    
+                    reader.read().then(processText);
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Ocorreu um erro durante a importação.');
+                    submitButton.innerHTML = 'Importar Alunos';
+                    submitButton.disabled = false;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

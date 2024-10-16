@@ -434,17 +434,78 @@
 
         .action-container {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+
+        .action-left {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-center {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .action-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
         }
 
         .search-input {
-            padding: 10px;
-            border: 1px solid #979797;
-            border-radius: 4px;
-            font-size: 14px;
-            width: 250px;
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            background-color: var(--bg-medium);
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 20px;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+            font-size: 1rem;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-gray);
+        }
+
+        @media (max-width: 768px) {
+            .action-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-left, .action-center, .action-right {
+                width: 100%;
+            }
+
+            .search-wrapper {
+                max-width: none;
+            }
         }
 
         .course-item {
@@ -515,6 +576,40 @@
             color: var(--accent);
             text-decoration: underline;
         }
+
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .pagination button {
+            background-color: var(--bg-light);
+            color: var(--text-gray);
+            border: none;
+            padding: 0.5rem 0.75rem;
+            margin: 0 0.25rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .pagination button:hover {
+            background-color: var(--bg-medium);
+            color: var(--text-light);
+        }
+
+        .pagination button.active {
+            background-color: var(--accent);
+            color: var(--text-light);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -534,9 +629,17 @@
                             <i class="fas fa-users icon"></i> Alunos
                         </button>
                     </li>
+                    <li>
+                        <button onclick="importStudents()">
+                            <i class="fas fa-file-import icon"></i> Importar alunos
+                        </button>
+                    </li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
+                <button id="reportBtn">
+                    <i class="fas fa-flag icon"></i> Reportar
+                </button>
                 <button onclick="window.open('https://docs.membriumwl.com/', '_blank')">
                     <i class="fas fa-file-alt icon"></i> Documentação
                 </button>
@@ -572,7 +675,7 @@
             </div>
 
             <div class="action-container">
-                <div class="action-buttons">
+                <div class="action-left">
                     <button class="button" id="newCourseBtn">
                         <i class="fas fa-plus icon"></i> Criar Novo Curso
                     </button>
@@ -580,8 +683,14 @@
                         <i class="fas fa-user-plus icon"></i> Adicionar Novo Aluno
                     </button>
                 </div>
-                <div class="search-container" style="display: none;">
-                    <input type="text" id="studentSearch" placeholder="Buscar alunos..." class="search-input">
+                <div id="studentSearchContainer" class="action-center" style="display: none;">
+                    <div class="search-wrapper">
+                        <input type="text" id="studentSearch" placeholder="Buscar alunos..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+                <div id="paginationContainer" class="action-right" style="display: none;">
+                    <div id="pagination" class="pagination"></div>
                 </div>
             </div>
 
@@ -633,6 +742,40 @@
         </div>
     </div>
 
+    <!-- Edit Course Modal -->
+    <div id="editCourseModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="card-title">Editar Curso</h2>
+            <form id="editCourseForm">
+                <input type="hidden" id="editCourseId" name="id">
+                
+                <label for="editCourseName">Nome:</label>
+                <input type="text" id="editCourseName" name="name" required>
+                
+                <label for="editCourseDescription">Descrição:</label>
+                <textarea id="editCourseDescription" name="description" required></textarea>
+                
+                <div class="file-input-container">
+                    <input type="file" id="editCourseImage" name="image" accept="image/*">
+                    <label for="editCourseImage" class="file-input-label">
+                        <span class="file-input-icon"></span>
+                        <span class="file-input-text">Escolha uma nova imagem (opcional)</span>
+                    </label>
+                    <div id="editImagePreview" class="image-preview"></div>
+                    <label for="editCourseImage">Recomendado 16:9(455x256)</label>
+                </div>
+                
+                <button type="submit" class="button" id="updateCourseBtn">
+                    <span class="button-text">Atualizar Curso</span>
+                    <span class="spinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- New Student Modal -->
     <div id="newStudentModal" class="modal">
         <div class="modal-content">
@@ -659,39 +802,42 @@
     </div>
 
     <!-- Edit Student Modal -->
-        <div id="editStudentModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 class="card-title">Editar Aluno</h2>
-                <form id="editStudentForm">
-                    <input type="hidden" id="editStudentId" name="id">
+    <div id="editStudentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="card-title">Editar Aluno</h2>
+            <form id="editStudentForm">
+                <input type="hidden" id="editStudentId" name="id">
+                
+                <label for="editAction">Ação:</label>
+                <select id="editAction" name="action" required>
+                    <option value="update">Atualizar Informações</option>
+                    <option value="include">Incluir em Curso</option>
+                    <option value="remove">Remover do Curso</option>
+                </select>
+    
+                <div id="updateFields">
+                    <label for="editStudentEmail">Email:</label>
+                    <input type="email" id="editStudentEmail" name="email" required>
                     
-                    <label for="editAction">Ação:</label>
-                    <select id="editAction" name="action" required>
-                        <option value="update">Atualizar Informações</option>
-                        <option value="include">Incluir em Curso</option>
-                    </select>
-
-                    <div id="updateFields">
-                        <label for="editStudentEmail">Email:</label>
-                        <input type="email" id="editStudentEmail" name="email" required>
-                        
-                        <label for="editStudentPassword">Nova Senha (deixe em branco para manter a atual):</label>
-                        <input type="password" id="editStudentPassword" name="password">
-                        
-                        <label for="editStudentName">Nome:</label>
-                        <input type="text" id="editStudentName" name="name" required>
-                    </div>
-
+                    <label for="editStudentPassword">Nova Senha (deixe em branco para manter a atual):</label>
+                    <input type="password" id="editStudentPassword" name="password">
+                    
+                    <label for="editStudentName">Nome:</label>
+                    <input type="text" id="editStudentName" name="name" required>
+                </div>
+    
+                <div id="courseFields">
                     <label for="editStudentCourses">Curso:</label>
                     <select id="editStudentCourses" name="course" required>
                         <!-- Opções de cursos serão adicionadas dinamicamente -->
                     </select>
-                    
-                    <button type="submit" class="button">Salvar Alterações</button>
-                </form>
-            </div>
+                </div>
+                
+                <button type="submit" class="button">Salvar Alterações</button>
+            </form>
         </div>
+    </div>
 
         <!-- Webhook Modal -->
         <div id="webhookModal" class="modal">
@@ -721,6 +867,36 @@
             </div>
         </div>
     
+        <!-- Report Modal -->
+        <div id="reportModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 class="card-title">Reportar</h2>
+                <form id="reportForm">
+                    <div>
+                        <label>
+                            <input type="radio" name="reportType" value="Bugs / Erros" required>
+                            Bugs / Erros
+                        </label>
+                    </div>
+                    <div>
+                        <label>
+                            <input type="radio" name="reportType" value="Melhorias">
+                            Melhorias
+                        </label>
+                    </div>
+                    <div>
+                        <label>
+                            <input type="radio" name="reportType" value="Sugestões">
+                            Sugestões
+                        </label>
+                    </div>
+                    <textarea id="reportDetails" rows="5" placeholder="Descreva os detalhes aqui..." required></textarea>
+                    <button type="submit" class="button">Enviar Relatório</button>
+                </form>
+            </div>
+        </div>
+
     <script>
         // Fetch courses
         function fetchCourses() {
@@ -763,6 +939,9 @@
                             <button class="card-button webhook" onclick="openWebhookModal(${course.id})" title="Webhook">
                                 <i class="fas fa-link"></i> Webhook
                             </button>
+                            <button class="card-button edit" onclick="openEditCourseModal(${course.id})" title="Editar curso">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
                             <button class="card-button delete" onclick="deleteCourse(${course.id})" title="Excluir curso">
                                 <i class="fas fa-trash-alt"></i> Excluir
                             </button>
@@ -774,13 +953,84 @@
                 li.addEventListener('click', function(event) {
                     // Verifica se o clique não foi em um dos botões
                     if (!event.target.closest('.card-button')) {
-                        editCourse(course.id);
+                        window.location.href = `/admin/course/${course.id}/modification`;
                     }
                 });
                 
                 courseList.appendChild(li);
             });
         }
+
+        function openEditCourseModal(id) {
+            fetch(`/admin/course/${id}`, {
+                method: 'GET'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter informações do curso');
+                }
+                return response.json();
+            })
+            .then(course => {
+                document.getElementById('editCourseId').value = course.id;
+                document.getElementById('editCourseName').value = course.name;
+                document.getElementById('editCourseDescription').value = course.description;
+                
+                // Atualizar a pré-visualização da imagem, se houver
+                const imagePreview = document.getElementById('editImagePreview');
+                if (course.image_url) {
+                    imagePreview.innerHTML = `<img src="${course.image_url}" alt="Pré-visualização da imagem">`;
+                    imagePreview.style.display = 'block';
+                } else {
+                    imagePreview.innerHTML = '';
+                    imagePreview.style.display = 'none';
+                }
+                
+                // Abrir o modal
+                document.getElementById('editCourseModal').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao carregar informações do curso');
+            });
+        }
+
+        document.getElementById('editCourseForm').onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const courseId = document.getElementById('editCourseId').value;
+
+            const submitButton = document.getElementById('updateCourseBtn');
+            const buttonText = submitButton.querySelector('.button-text');
+            const spinner = submitButton.querySelector('.spinner');
+
+            submitButton.disabled = true;
+            buttonText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+
+            fetch(`/admin/course/${courseId}`, {
+                method: 'PUT',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('editCourseModal').style.display = 'none';
+                    fetchCourses();
+                } else {
+                    alert('Erro ao atualizar o curso');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao atualizar o curso');
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                buttonText.style.display = 'inline-block';
+                spinner.style.display = 'none';
+            });
+        };
 
         // Delete course
         function deleteCourse(id) {
@@ -808,7 +1058,7 @@
                 document.getElementById('totalCourses').textContent = courses.length;
             }
             if (students) {
-                document.getElementById('totalStudents').textContent = students.length;
+                document.getElementById('totalStudents').textContent = students;
             }
         }
 
@@ -818,26 +1068,64 @@
         function showCourses() {
             document.getElementById('courseListCard').style.display = 'block';
             document.getElementById('studentListCard').style.display = 'none';
-            document.querySelector('.search-container').style.display = 'none';
+            document.getElementById('studentSearchContainer').style.display = 'none';
+            document.getElementById('paginationContainer').style.display = 'none';
         }
 
         // Show students
         function showStudents() {
             document.getElementById('courseListCard').style.display = 'none';
             document.getElementById('studentListCard').style.display = 'block';
-            document.querySelector('.search-container').style.display = 'block';
+            document.getElementById('studentSearchContainer').style.display = 'flex';
+            document.getElementById('paginationContainer').style.display = 'flex';
             fetchStudents();
         }
 
-        // Fetch students
-        function fetchStudents() {
-            fetch('/admin/students')
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentSearch = '';
+
+        function fetchTotalStudents() {
+            fetch('/admin/total-students')
                 .then(response => response.json())
                 .then(data => {
-                    allStudents = data;
-                    populateStudentList(allStudents);
-                    updateTotals(null, allStudents);
+                    updateTotals(null, data.total);
                 });
+        }
+
+        // Fetch students
+        function fetchStudents(page = 1, search = '') {
+            currentPage = page;
+            currentSearch = search;
+            const url = `/admin/students?page=${page}&search=${encodeURIComponent(search)}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    allStudents = data.students;
+                    totalPages = data.pages;
+                    populateStudentList(allStudents);
+                    updatePagination();
+                });
+        }
+
+        function updatePagination() {
+            const paginationElement = document.getElementById('pagination');
+            let paginationHTML = '';
+            
+            if (totalPages > 1) {
+                paginationHTML += `<button onclick="fetchStudents(1, currentSearch)" ${currentPage === 1 ? 'disabled' : ''}>First</button>`;
+                paginationHTML += `<button onclick="fetchStudents(${currentPage - 1}, currentSearch)" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+                
+                for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+                    paginationHTML += `<button onclick="fetchStudents(${i}, currentSearch)" ${i === currentPage ? 'class="active"' : ''}>${i}</button>`;
+                }
+                
+                paginationHTML += `<button onclick="fetchStudents(${currentPage + 1}, currentSearch)" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+                paginationHTML += `<button onclick="fetchStudents(${totalPages}, currentSearch)" ${currentPage === totalPages ? 'disabled' : ''}>Last</button>`;
+            }
+            
+            paginationElement.innerHTML = paginationHTML;
         }
 
         // Populate student list
@@ -873,12 +1161,7 @@
         }
 
         function filterStudents(searchTerm) {
-            const filteredStudents = allStudents.filter(student => 
-                student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                student.courses.some(course => course.name.toLowerCase().includes(searchTerm.toLowerCase()))
-            );
-            populateStudentList(filteredStudents);
+            fetchStudents(1, searchTerm);
         }
 
         // Adicionar event listener para o campo de busca
@@ -910,7 +1193,7 @@
                 .then(response => response.json())
                 .then(courses => {
                     const courseSelect = document.getElementById('editStudentCourses');
-                    courseSelect.innerHTML = '';
+                    courseSelect.innerHTML = '<option value="">Selecione um curso</option>';
                     courses.forEach(course => {
                         const option = document.createElement('option');
                         option.value = course.id;
@@ -1025,50 +1308,68 @@
         document.getElementById('newCourseForm').onsubmit = function(e) {
             e.preventDefault();
             const formData = new FormData(this);
+            const courseId = this.getAttribute('data-id');
+            const url = courseId ? `/admin/course/${courseId}` : '/admin/course';
+            const method = courseId ? 'PUT' : 'POST';
+
             const submitButton = document.getElementById('createCourseBtn');
             const buttonText = submitButton.querySelector('.button-text');
             const spinner = submitButton.querySelector('.spinner');
 
-            // Desabilita o botão e mostra o spinner
             submitButton.disabled = true;
             buttonText.style.display = 'none';
             spinner.style.display = 'inline-block';
 
-            fetch('/admin/course', {
-                method: 'POST',
+            fetch(url, {
+                method: method,
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Reseta o formulário
                     this.reset();
-                    
-                    // Limpa a pré-visualização da imagem
                     document.getElementById('imagePreview').innerHTML = '';
                     document.getElementById('imagePreview').style.display = 'none';
                     document.querySelector('.file-input-text').textContent = 'Escolha uma imagem';
-
-                    // Fecha o modal
-                    newCourseModal.style.display = 'none';
-                    
-                    // Atualiza a lista de cursos
+                    document.getElementById('newCourseModal').style.display = 'none';
                     fetchCourses();
                 } else {
-                    alert('Erro ao criar o curso');
+                    alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso');
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                alert('Erro ao criar o curso');
+                alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso');
             })
             .finally(() => {
-                // Reativa o botão e esconde o spinner
                 submitButton.disabled = false;
                 buttonText.style.display = 'inline-block';
                 spinner.style.display = 'none';
+                // Resetar o formulário para o estado de criação
+                this.removeAttribute('data-id');
+                document.getElementById('createCourseBtn').innerHTML = `
+                    <span class="button-text">Criar Curso</span>
+                    <span class="spinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
+                `;
             });
         };
+
+        document.querySelector('#newCourseModal .close').addEventListener('click', function() {
+            document.getElementById('newCourseModal').style.display = 'none';
+            document.getElementById('newCourseForm').reset();
+            document.getElementById('newCourseForm').removeAttribute('data-id');
+            document.getElementById('createCourseBtn').innerHTML = `
+                <span class="button-text">Criar Curso</span>
+                <span class="spinner" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
+            `;
+            document.getElementById('imagePreview').innerHTML = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.querySelector('.file-input-text').textContent = 'Escolha uma imagem';
+        });
 
         document.getElementById('newStudentForm').onsubmit = function(e) {
             e.preventDefault();
@@ -1090,11 +1391,20 @@
                 }
             });
         };
+        
+        document.querySelector('#editCourseModal .close').addEventListener('click', function() {
+            document.getElementById('editCourseModal').style.display = 'none';
+        });
 
         document.getElementById('editStudentForm').onsubmit = function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             const studentId = formData.get('id');
+            const action = formData.get('action');
+            
+            if (action === 'update') {
+                formData.delete('course');  // Remove o campo 'course' se a ação for 'update'
+            }
             
             fetch(`/admin/student/${studentId}`, {
                 method: 'PUT',
@@ -1104,7 +1414,7 @@
             .then(data => {
                 if (data.success) {
                     document.getElementById('editStudentModal').style.display = 'none';
-                    fetchStudents();
+                    fetchStudents();  // Atualiza a lista de estudantes
                 } else {
                     alert('Erro ao atualizar o aluno: ' + data.message);
                 }
@@ -1218,10 +1528,65 @@
                 });
         }
 
+        function importStudents() {
+            window.location.href = '/admin/import-students';
+        }
+
         // Initialize
         fetchCourses();
+        fetchTotalStudents();
         fetchStudents();
         createStudentCourseChart();
+
+
+        // Report Modal
+        const reportModal = document.getElementById('reportModal');
+        const reportBtn = document.getElementById('reportBtn');
+        const reportForm = document.getElementById('reportForm');
+
+        reportBtn.onclick = () => reportModal.style.display = 'block';
+
+        document.querySelector('#reportModal .close').onclick = function() {
+            reportModal.style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            if (event.target == reportModal) {
+                reportModal.style.display = 'none';
+            }
+            // Mantenha os outros event listeners de window.onclick aqui
+        };
+
+        reportForm.onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const reportType = formData.get('reportType');
+            const reportDetails = document.getElementById('reportDetails').value;
+
+            fetch('https://n8n-n8n.gumktq.easypanel.host/webhook/bd1548b1-ed3e-44c7-ab20-bd38ef4569e9', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type: reportType,
+                    details: reportDetails
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Relatório enviado com sucesso!');
+                    reportModal.style.display = 'none';
+                    reportForm.reset();
+                } else {
+                    alert('Erro ao enviar o relatório. Por favor, tente novamente.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao enviar o relatório. Por favor, tente novamente.');
+            });
+        };
     </script>
 </body>
 </html>
