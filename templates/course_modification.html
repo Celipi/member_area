@@ -661,9 +661,14 @@ input:checked + .slider:before {
             const hasButtonInput = document.getElementById('hasButton');
 
             lessonForm.reset();
+            document.getElementById('lessonId').value = ''; // Limpa o ID da aula
+            document.getElementById('lessonVideoType').value = 'youtube';
             extraOptionsToggle.checked = false;
             extraOptions.style.display = 'none';
             hasButtonInput.value = 'false';
+            document.getElementById('buttonText').value = '';
+            document.getElementById('buttonLink').value = '';
+            document.getElementById('appearanceTime').value = '';
         }
 
         function openModuleModal(moduleId = null) {
@@ -692,27 +697,48 @@ input:checked + .slider:before {
             const hasButtonInput = document.getElementById('hasButton');
             
             document.getElementById('lessonModuleId').value = moduleId;
+            document.getElementById('lessonVideoType').value = 'youtube'; // Definindo YouTube como valor padrão
 
             if (lessonId) {
                 const module = courseData.modules.find(m => m.id === moduleId);
-                const lesson = module.lessons.find(l => l.id === lessonId);
-                title.textContent = 'Editar Aula';
-                document.getElementById('lessonId').value = lessonId;
-                document.getElementById('lessonTitle').value = lesson.title;
-                document.getElementById('lessonDescription').value = lesson.description;
-                document.getElementById('lessonVideoUrl').value = lesson.video_url;
-                document.getElementById('lessonVideoType').value = lesson.video_type;
-                extraOptionsToggle.checked = lesson.has_button;
-                hasButtonInput.value = lesson.has_button.toString();
-                extraOptions.style.display = lesson.has_button ? 'block' : 'none';
-                if (lesson.has_button) {
-                    document.getElementById('buttonText').value = lesson.button_text || '';
-                    document.getElementById('buttonLink').value = lesson.button_link || '';
-                    document.getElementById('appearanceTime').value = lesson.button_delay || '';
+                if (module) {
+                    const lesson = module.lessons.find(l => l.id === lessonId);
+                    if (lesson) {
+                        title.textContent = 'Editar Aula';
+                        document.getElementById('lessonId').value = lessonId;
+                        document.getElementById('lessonTitle').value = lesson.title || '';
+                        document.getElementById('lessonDescription').value = lesson.description || '';
+                        document.getElementById('lessonVideoUrl').value = lesson.video_url || '';
+                        document.getElementById('lessonVideoType').value = lesson.video_type || 'youtube';
+                        
+                        // Configurando o toggle de CTA e campos relacionados
+                        extraOptionsToggle.checked = lesson.has_button || false;
+                        hasButtonInput.value = (lesson.has_button || false).toString();
+                        extraOptions.style.display = lesson.has_button ? 'block' : 'none';
+                        
+                        if (lesson.has_button) {
+                            document.getElementById('buttonText').value = lesson.button_text || '';
+                            document.getElementById('buttonLink').value = lesson.button_link || '';
+                            document.getElementById('appearanceTime').value = lesson.button_delay || '';
+                        } else {
+                            document.getElementById('buttonText').value = '';
+                            document.getElementById('buttonLink').value = '';
+                            document.getElementById('appearanceTime').value = '';
+                        }
+                    } else {
+                        console.error('Aula não encontrada');
+                        return;
+                    }
+                } else {
+                    console.error('Módulo não encontrado');
+                    return;
                 }
             } else {
                 title.textContent = 'Adicionar Nova Aula';
                 resetForm();
+                extraOptionsToggle.checked = false;
+                hasButtonInput.value = 'false';
+                extraOptions.style.display = 'none';
             }
 
             lessonModal.style.display = "block";
@@ -824,15 +850,24 @@ input:checked + .slider:before {
                 method: method,
                 body: form,
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Resposta da rede não foi ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     lessonModal.style.display = "none";
                     fetchCourseData();
                     resetForm();
                 } else {
-                    alert('Erro ao salvar aula');
+                    alert('Erro ao salvar aula: ' + (data.message || 'Erro desconhecido'));
                 }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao salvar aula: ' + error.message);
             });
         }
 
@@ -861,6 +896,10 @@ input:checked + .slider:before {
         }
 
         function editLesson(moduleId, lessonId) {
+            if (typeof moduleId !== 'number' || typeof lessonId !== 'number') {
+                console.error('IDs inválidos:', moduleId, lessonId);
+                return;
+            }
             openLessonModal(moduleId, lessonId);
         }
 
