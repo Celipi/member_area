@@ -58,7 +58,6 @@ services:
       - FLASK_APP=app.py
       - FLASK_ENV=production
     volumes:
-      - .:/app
       - temp_data:/app/temp
     networks:
       - traefik_proxy
