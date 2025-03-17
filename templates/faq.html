@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de FAQ</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <link rel="stylesheet" href="/static/src/css/faq.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="shadow-lg w-64 flex-shrink-0 flex flex-col border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-primary flex items-center">
+                    <i data-lucide="layout-dashboard" class="h-6 w-6 mr-3"></i>
+                    MembriumWL
+                </h1>
+            </div>
+            <nav class="flex-grow p-6">
+                <p class="text-xs font-medium text-gray-400 mb-6 uppercase tracking-wider">Gerenciamento</p>
+                <ul class="space-y-4">
+                    <li>
+                        <button onclick="window.location.href='/admin'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Cursos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/students-panel'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="users" class="h-5 w-5 mr-3"></i> Alunos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/showcase'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="store" class="h-5 w-5 mr-3"></i> Vitrine
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/promote'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="megaphone" class="h-5 w-5 mr-3"></i> Promoções
+                        </button>
+                    </li>
+                    <li>
+                        <button class="w-full flex items-center px-5 py-3 bg-primary text-white rounded-md transition-all">
+                            <i data-lucide="help-circle" class="h-5 w-5 mr-3"></i> FAQ
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/file-manager'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="file" class="h-5 w-5 mr-3"></i> Arquivos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/settings'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configurações
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-6 border-t border-gray-200 space-y-4">
+                <button onclick="window.open('https://help.membriumwl.com/', '_blank')" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="life-buoy" class="h-5 w-5 mr-3"></i> Ajuda
+                </button>
+                <button onclick="window.location.href='/logout'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="log-out" class="h-5 w-5 mr-3"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-grow p-6 overflow-y-auto">
+            <div class="mx-auto max-w-7xl">
+                <!-- Top section with heading and action button -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Gerenciador de FAQ</h2>
+                        <p class="text-gray-500">Gerencie as perguntas frequentes das suas aulas.</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <button onclick="showFAQModal()" class="primary-button">
+                            <i data-lucide="plus-circle" class="h-4 w-4 mr-2"></i>
+                            Novo FAQ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="stats-card flex items-center justify-between">
+                        <div>
+                            <p class="stats-card-title">Total de FAQs</p>
+                            <h3 class="stats-card-value" id="totalFAQs">0</h3>
+                        </div>
+                        <div class="stats-card-icon bg-red-50">
+                            <i data-lucide="help-circle" class="h-6 w-6 text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="stats-card flex items-center justify-between">
+                        <div>
+                            <p class="stats-card-title">Aulas com FAQ</p>
+                            <h3 class="stats-card-value" id="lessonsWithFAQs">0</h3>
+                        </div>
+                        <div class="stats-card-icon bg-blue-50">
+                            <i data-lucide="book-open" class="h-6 w-6 text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="stats-card flex items-center justify-between">
+                        <div>
+                            <p class="stats-card-title">Média de FAQs por Aula</p>
+                            <h3 class="stats-card-value" id="averageFAQs">0</h3>
+                        </div>
+                        <div class="stats-card-icon bg-green-50">
+                            <i data-lucide="bar-chart-2" class="h-6 w-6 text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and filter bar -->
+                <div class="bg-white rounded-lg shadow-sm mb-6 p-4">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <div class="relative flex-grow search-input-container">
+                            <input type="text" id="searchInput" placeholder="Buscar aulas com FAQ..." 
+                                class="w-full h-10 pl-[42px] pr-4 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="md:w-48">
+                            <select id="courseFilter" class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm">
+                                <option value="">Todos os cursos</option>
+                                <!-- Cursos serão preenchidos via JavaScript -->
+                            </select>
+                        </div>
+                        <div class="md:w-48">
+                            <select id="moduleFilter" class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm" disabled>
+                                <option value="">Todos os módulos</option>
+                                <!-- Módulos serão preenchidos via JavaScript quando um curso for selecionado -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table section -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aula</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
+                                    <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total FAQs</th>
+                                    <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faqTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Dados serão inseridos via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Estado vazio -->
+                    <div id="emptyState" class="hidden py-12 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                            <i data-lucide="help-circle" class="w-8 h-8 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum FAQ encontrado</h3>
+                        <p class="text-gray-500 mb-6">Comece criando seu primeiro FAQ para ajudar seus alunos!</p>
+                        <button onclick="showFAQModal()" class="primary-button mx-auto">
+                            <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i>
+                            Criar FAQ
+                        </button>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="p-4 border-t border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="text-sm text-gray-500 mb-4 md:mb-0">
+                                <span id="paginationInfo">Mostrando aulas com FAQ</span>
+                            </div>
+                            <div class="pagination-container" id="pagination">
+                                <!-- Pagination controls will be added here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Novo/Editar FAQ -->
+    <div id="faqModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto my-8 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800" id="modalTitle">Novo FAQ</h2>
+                <button class="close hover:text-gray-800 cursor-pointer text-gray-500 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="faqForm" class="space-y-6">
+                <!-- Seleção de Aula -->
+                <div class="form-section">
+                    <h3>Selecione a Aula</h3>
+                    <div class="dropdown-cascade">
+                        <div>
+                            <label for="formCourseSelect">Curso</label>
+                            <select id="formCourseSelect" name="course_id" required class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm">
+                                <option value="">Selecione um curso</option>
+                                <!-- Cursos serão preenchidos via JavaScript -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="formModuleSelect">Módulo</label>
+                            <select id="formModuleSelect" name="module_id" required disabled class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm">
+                                <option value="">Selecione um módulo</option>
+                                <!-- Módulos serão preenchidos via JavaScript -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="formLessonSelect">Aula</label>
+                            <select id="formLessonSelect" name="lesson_id" required disabled class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm">
+                                <option value="">Selecione uma aula</option>
+                                <!-- Aulas serão preenchidas via JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="button" id="generateAIButton" class="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i data-lucide="sparkles" class="h-4 w-4 mr-2"></i>
+                            Gerar com IA
+                        </button>
+                        <p class="text-xs text-gray-500 mt-1 text-center">Gere perguntas e respostas com inteligência artificial</p>
+                    </div>
+                </div>
+
+                <!-- FAQs -->
+                <div class="form-section">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="mb-0">Perguntas e Respostas</h3>
+                        <div class="faq-counter">
+                            <span id="faqCounter">3</span>/10 perguntas
+                        </div>
+                    </div>
+                    
+                    <div id="faqPairsContainer" class="space-y-4">
+                        <!-- FAQ items will be added here -->
+                        <div class="faq-form-pair" data-index="0">
+                            <button type="button" class="remove-btn" disabled>
+                                <i data-lucide="x-circle" class="h-5 w-5"></i>
+                            </button>
+                            <div class="mb-4">
+                                <label for="question_0">Pergunta 1</label>
+                                <input type="text" id="question_0" name="question[]" required placeholder="Digite a pergunta">
+                            </div>
+                            <div>
+                                <label for="answer_0">Resposta</label>
+                                <textarea id="answer_0" name="answer[]" required placeholder="Digite a resposta" class="text-sm"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-form-pair" data-index="1">
+                            <button type="button" class="remove-btn" disabled>
+                                <i data-lucide="x-circle" class="h-5 w-5"></i>
+                            </button>
+                            <div class="mb-4">
+                                <label for="question_1">Pergunta 2</label>
+                                <input type="text" id="question_1" name="question[]" required placeholder="Digite a pergunta">
+                            </div>
+                            <div>
+                                <label for="answer_1">Resposta</label>
+                                <textarea id="answer_1" name="answer[]" required placeholder="Digite a resposta" class="text-sm"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-form-pair" data-index="2">
+                            <button type="button" class="remove-btn" disabled>
+                                <i data-lucide="x-circle" class="h-5 w-5"></i>
+                            </button>
+                            <div class="mb-4">
+                                <label for="question_2">Pergunta 3</label>
+                                <input type="text" id="question_2" name="question[]" required placeholder="Digite a pergunta">
+                            </div>
+                            <div>
+                                <label for="answer_2">Resposta</label>
+                                <textarea id="answer_2" name="answer[]" required placeholder="Digite a resposta" class="text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="addFaqContainer" class="mt-4">
+                        <button type="button" id="addFaqButton" class="add-faq-btn">
+                            <i data-lucide="plus-circle" class="h-5 w-5 mr-2 inline-block"></i>
+                            Adicionar outra pergunta
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" class="secondary-button close">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="primary-button">
+                        <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                        Salvar FAQ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do FAQ -->
+    <div id="faqDetailsModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto my-8 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Detalhes do FAQ</h2>
+                <button class="close hover:text-gray-800 cursor-pointer text-gray-500 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div class="mb-4">
+                    <span class="text-sm font-medium text-gray-500">Curso:</span>
+                    <p id="detailsCourseName" class="text-gray-900 font-medium"></p>
+                </div>
+                <div class="mb-4">
+                    <span class="text-sm font-medium text-gray-500">Módulo:</span>
+                    <p id="detailsModuleName" class="text-gray-900 font-medium"></p>
+                </div>
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Aula:</span>
+                    <p id="detailsLessonName" class="text-gray-900 font-medium"></p>
+                </div>
+            </div>
+            
+            <div id="faqDetailsList" class="space-y-4 mb-6">
+                <!-- FAQ details will be added here -->
+            </div>
+            
+            <div class="flex justify-end">
+                <button class="secondary-button close">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Geração por IA -->
+    <div id="aiModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto my-8 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Gerar FAQ com IA</h2>
+                <button class="close hover:text-gray-800 cursor-pointer text-gray-500 transition-colors" onclick="closeAIModal()">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <!-- API Key Setup Container -->
+            <div id="apiKeySetupContainer" class="hidden mb-6">
+                <div class="p-4 mb-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-md">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i data-lucide="alert-triangle" class="h-5 w-5 text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                Para gerar FAQ com inteligência artificial, é necessário configurar pelo menos uma API key (GROQ ou OpenAI).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="mb-6">
+                        <h3 class="mb-4">Configurar API Keys</h3>
+                        
+                        <!-- GROQ API Key -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-start">
+                                <img src="/static/fixed/groq.png" alt="GROQ" class="w-8 h-8 mr-3">
+                                <div class="flex-grow">
+                                    <h4 class="text-sm font-medium text-gray-900 mb-1">GROQ</h4>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">API Key da GROQ</label>
+                                    <input type="password" id="groqApiKeyInput" class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm" placeholder="Insira sua API key da GROQ">
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        Obtenha sua API key em <a href="https://console.groq.com/keys" target="_blank" class="text-purple-600 hover:underline">console.groq.com/keys</a>
+                                    </p>
+                                    <button type="button" id="saveGroqApiButton" class="mt-3 primary-button bg-purple-600 hover:bg-purple-700">
+                                        <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                                        Salvar API Key GROQ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OpenAI API Key -->
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-start">
+                                <img src="/static/fixed/openai.png" alt="OpenAI" class="w-8 h-8 mr-3">
+                                <div class="flex-grow">
+                                    <h4 class="text-sm font-medium text-gray-900 mb-1">OpenAI (ChatGPT)</h4>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">API Key da OpenAI</label>
+                                    <input type="password" id="openaiApiKeyInput" class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm" placeholder="Insira sua API key da OpenAI">
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        Obtenha sua API key em <a href="https://platform.openai.com/api-keys" target="_blank" class="text-purple-600 hover:underline">platform.openai.com/api-keys</a>
+                                    </p>
+                                    <button type="button" id="saveOpenaiApiButton" class="mt-3 primary-button bg-purple-600 hover:bg-purple-700">
+                                        <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                                        Salvar API Key OpenAI
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Config Container -->
+            <div id="aiConfigContainer" class="mb-6">
+                <p class="text-gray-700 mb-4">
+                    A inteligência artificial irá analisar o vídeo da aula e gerar perguntas frequentes com base no conteúdo.
+                </p>
+                
+                <div class="form-section">
+                    <h3>Configurações de IA</h3>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Provedor de IA</label>
+                        <div class="flex gap-4 mb-2">
+                            <label class="flex items-center" id="groqProviderLabel">
+                                <input type="radio" name="aiProvider" id="groqProvider" value="groq" class="h-4 w-4 text-purple-600" disabled>
+                                <span class="ml-2 text-sm text-gray-700">GROQ</span>
+                            </label>
+                            <label class="flex items-center" id="openaiProviderLabel">
+                                <input type="radio" name="aiProvider" id="openaiProvider" value="openai" class="h-4 w-4 text-purple-600" disabled>
+                                <span class="ml-2 text-sm text-gray-700">OpenAI (ChatGPT)</span>
+                            </label>
+                        </div>
+                        <p id="providerWarning" class="text-xs text-orange-600 hidden mt-1">
+                            <i data-lucide="alert-circle" class="inline-block w-3 h-3 mr-1"></i>
+                            Configure pelo menos um provedor de IA nas configurações
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="aiModelSelect" class="block text-sm font-medium text-gray-700 mb-1">Modelo de IA</label>
+                        <select id="aiModelSelect" class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm">
+                            <!-- Modelos serão preenchidos via JavaScript -->
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Modelos mais avançados geram respostas de maior qualidade.</p>
+                    </div>
+                    
+                    <div id="aiLessonInfo" class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-purple-100 rounded-full p-2 mr-3">
+                                <i data-lucide="video" class="h-5 w-5 text-purple-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900" id="aiLessonTitle">Nome da aula</p>
+                                <p class="text-xs text-gray-500" id="aiVideoType">Tipo de vídeo: YouTube</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Estados de geração -->
+            <div id="aiGeneratingState" class="hidden py-8 text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700"></div>
+                <h3 class="text-lg font-medium text-gray-900 mt-4" id="generationStatusMessage">Processando vídeo...</h3>
+                <p class="text-gray-500 mt-2" id="generationStatusDetail">Isso pode levar alguns minutos dependendo da duração do vídeo.</p>
+            </div>
+            
+            <!-- Resultado da IA -->
+            <div id="aiResultsContainer" class="hidden">
+                <div class="form-section mb-4">
+                    <h3>FAQ Gerado pela IA</h3>
+                    <div id="aiGeneratedFAQs" class="space-y-4 mt-4">
+                        <!-- FAQ items will be added here -->
+                    </div>
+                    
+                    <!-- Seção de ajuste do FAQ -->
+                    <div class="mt-6 border-t pt-4">
+                        <h4 class="text-sm font-medium text-gray-900 mb-2">Ajustar FAQ</h4>
+                        <div class="flex gap-2">
+                            <input type="text" id="faqAdjustmentPrompt" 
+                                placeholder="Ex: Deixar as respostas mais curtas, Tornar mais emocional, etc." 
+                                class="flex-grow h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent px-4 text-sm">
+                            <button type="button" id="adjustFaqButton" class="secondary-button bg-purple-100 hover:bg-purple-200 text-purple-700">
+                                <i data-lucide="wand-2" class="w-4 h-4 mr-2"></i>
+                                Ajustar
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Digite suas instruções para ajustar o FAQ gerado</p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button type="button" class="secondary-button" onclick="closeAIModal()">
+                        Cancelar
+                    </button>
+                    <button type="button" id="applyAIFaqButton" class="primary-button bg-purple-600 hover:bg-purple-700">
+                        <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+                        Aplicar FAQ gerado
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Estado de erro -->
+            <div id="aiErrorState" class="hidden py-8 text-center">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
+                    <i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Erro na geração</h3>
+                <p class="text-gray-500 mb-6" id="aiErrorMessage">Ocorreu um erro ao gerar o FAQ. Por favor, tente novamente.</p>
+                <button type="button" class="secondary-button mx-auto" onclick="closeAIModal()">
+                    Fechar
+                </button>
+            </div>
+            
+            <!-- Estado inicial -->
+            <div id="aiInitialState" class="flex justify-end space-x-3 pt-4">
+                <button type="button" class="secondary-button" onclick="closeAIModal()">
+                    Cancelar
+                </button>
+                <button type="button" id="startGenerationButton" class="primary-button bg-purple-600 hover:bg-purple-700">
+                    <i data-lucide="sparkles" class="w-4 h-4 mr-2"></i>
+                    Iniciar geração
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- JS específico para FAQ -->
+    <script src="/static/src/js/faq.js"></script>
+    <script src="/static/src/js/faq_ai.js"></script>
+</body>
+</html>

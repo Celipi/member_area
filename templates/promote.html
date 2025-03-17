@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Promoções</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <link rel="stylesheet" href="/static/src/css/promote.css">
+    <!-- Replace Font Awesome with Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="shadow-lg w-64 flex-shrink-0 flex flex-col border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-primary flex items-center">
+                    <i data-lucide="layout-dashboard" class="h-6 w-6 mr-3"></i>
+                    MembriumWL
+                </h1>
+            </div>
+            <nav class="flex-grow p-6">
+                <p class="text-xs font-medium text-gray-400 mb-6 uppercase tracking-wider">Gerenciamento</p>
+                <ul class="space-y-4">
+                    <li>
+                        <button onclick="window.location.href='/admin'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Cursos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/students-panel'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="users" class="h-5 w-5 mr-3"></i> Alunos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/showcase'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="store" class="h-5 w-5 mr-3"></i> Vitrine
+                        </button>
+                    </li>
+                    <li>
+                        <button class="w-full flex items-center px-5 py-3 bg-primary text-white rounded-md transition-all">
+                            <i data-lucide="megaphone" class="h-5 w-5 mr-3"></i> Promoções
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/faq'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="help-circle" class="h-5 w-5 mr-3"></i> FAQ
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/file-manager'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="file" class="h-5 w-5 mr-3"></i> Arquivos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/settings'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configurações
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-6 border-t border-gray-200 space-y-4">
+                <button onclick="window.open('https://help.membriumwl.com/', '_blank')" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="life-buoy" class="h-5 w-5 mr-3"></i> Ajuda
+                </button>
+                <button onclick="window.location.href='/logout'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="log-out" class="h-5 w-5 mr-3"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-grow p-6 overflow-y-auto">
+            <div class="mx-auto max-w-7xl">
+                <!-- Top section with heading and action button -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Gerenciador de Promoções</h2>
+                        <p class="text-gray-500">Gerencie todas as suas promoções em um só lugar.</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <button onclick="addNewPromotion()" class="primary-button">
+                            <i data-lucide="plus-circle" class="h-4 w-4 mr-2"></i>
+                            Nova Promoção
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="stats-card flex items-center justify-between">
+                        <div>
+                            <p class="stats-card-title">Total de Promoções</p>
+                            <h3 class="stats-card-value" id="totalPromotions">0</h3>
+                        </div>
+                        <div class="stats-card-icon bg-red-50">
+                            <i data-lucide="megaphone" class="h-6 w-6 text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="stats-card flex items-center justify-between">
+                        <div>
+                            <p class="stats-card-title">Promoções Ativas</p>
+                            <h3 class="stats-card-value" id="activePromotions">0</h3>
+                        </div>
+                        <div class="stats-card-icon bg-green-50">
+                            <i data-lucide="check-circle" class="h-6 w-6 text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and filter bar -->
+                <div class="bg-white rounded-lg shadow-sm mb-6 p-4">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <div class="relative flex-grow search-input-container">
+                            <input type="text" id="searchInput" placeholder="Buscar promoções..." 
+                                class="w-full h-10 pl-[42px] pr-4 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="md:w-48">
+                            <select id="statusFilter" class="w-full h-10 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent px-4 text-sm">
+                                <option value="">Todos os status</option>
+                                <option value="active">Ativos</option>
+                                <option value="inactive">Inativos</option>
+                                <option value="upcoming">Programados</option>
+                                <option value="expired">Expirados</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table section -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Promoção</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período de Exibição</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delay do Botão</th>
+                                    <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ativo</th>
+                                    <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="promotionTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Dados serão inseridos via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Estado vazio -->
+                    <div id="emptyState" class="hidden py-12 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                            <i data-lucide="megaphone" class="w-8 h-8 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma promoção encontrada</h3>
+                        <p class="text-gray-500 mb-6">Comece criando sua primeira promoção para engajar seus alunos!</p>
+                        <button onclick="addNewPromotion()" class="primary-button mx-auto">
+                            <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i>
+                            Criar Promoção
+                        </button>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="p-4 border-t border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="text-sm text-gray-500 mb-4 md:mb-0">
+                                <span id="paginationInfo">Mostrando promoções</span>
+                            </div>
+                            <div class="pagination-container" id="pagination">
+                                <!-- Pagination controls will be added here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Nova/Editar Promoção -->
+    <div id="newPromotionModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto my-8 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Nova Promoção</h2>
+                <button class="close hover:text-gray-800 cursor-pointer text-gray-500 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <form id="newPromotionForm" class="space-y-6">
+                <!-- Informações Básicas -->
+                <div class="form-section">
+                    <h3>Informações Básicas</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="promotionTitle">Título</label>
+                            <input type="text" id="promotionTitle" name="title" required 
+                                placeholder="Digite o título da promoção" class="text-sm">
+                        </div>
+                        <div>
+                            <label for="promotionText">Descrição</label>
+                            <textarea id="promotionText" name="description" rows="3" required 
+                                placeholder="Descreva os detalhes da promoção" class="text-sm"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tipo de Mídia -->
+                <div class="form-section">
+                    <h3>Mídia</h3>
+                    <div class="space-y-4">
+                        <div class="flex space-x-6">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="mediaType" value="image" checked required>
+                                <span class="ml-2">Imagem</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="mediaType" value="video">
+                                <span class="ml-2">Vídeo</span>
+                            </label>
+                        </div>
+
+                        <!-- Seção de Upload de Imagem -->
+                        <div id="imageUploadSection" class="flex flex-col items-start space-y-4">
+                            <div class="media-preview">
+                                <div id="uploadPlaceholder" class="upload-placeholder">
+                                    <i data-lucide="image" class="w-8 h-8 mb-2"></i>
+                                    <span class="text-sm">Selecione uma imagem</span>
+                                </div>
+                                <img id="previewImage" class="hidden" alt="Preview">
+                            </div>
+                            <label class="file-input-label">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                Escolher Imagem
+                                <input type="file" id="promotionImage" name="media_file" accept="image/*" class="hidden">
+                            </label>
+                        </div>
+
+                        <!-- Seção de URL do Vídeo -->
+                        <div id="videoUrlSection" class="hidden">
+                            <div class="flex space-x-2 mb-4">
+                                <input type="url" id="videoUrl" name="media_url" 
+                                    placeholder="URL do vídeo (YouTube)" class="flex-1">
+                                <button type="button" id="previewVideoBtn" 
+                                    class="secondary-button inline-flex items-center">
+                                    <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+                                    Preview
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                                <label for="hideVideoControls" class="text-sm font-medium text-gray-700">Ocultar controles do vídeo:</label>
+                                <div class="flex items-center">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="hideVideoControls" name="hide_video_controls" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                    <div class="group relative ml-2">
+                                        <i data-lucide="info" class="w-5 h-5 text-gray-400 cursor-help"></i>
+                                        <div class="absolute hidden group-hover:block bg-gray-800 text-white text-sm rounded py-1 px-2 right-0 bottom-full mb-2 w-64 z-50">
+                                            <div class="relative">
+                                                <div class="absolute h-2 w-2 bg-gray-800 transform rotate-45 -bottom-1 right-4"></div>
+                                                <p>Quando ativado, os controles do vídeo (play, pause, barra de progresso, etc.) serão ocultados.</p>
+                                                <p class="mt-1">Quando desativado, os controles padrão do vídeo serão exibidos aos usuários.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Período -->
+                <div class="form-section">
+                    <h3 class="flex items-center">
+                        Período
+                        <div class="group relative ml-2">
+                            <i data-lucide="info" class="w-5 h-5 text-gray-400 cursor-help"></i>
+                            <div class="absolute hidden group-hover:block bg-gray-800 text-white text-sm rounded py-2 px-3 left-0 bottom-full mb-2 w-72 z-50">
+                                <div class="relative">
+                                    <div class="absolute h-2 w-2 bg-gray-800 transform rotate-45 -bottom-1 left-4"></div>
+                                    <p><strong>Data Inicial:</strong> A partir desta data a promoção começará a ser exibida. Por exemplo, se selecionar 21/01/2025, a promoção será exibida a partir do dia 21 de janeiro às 00:00.</p>
+                                    <p class="mt-2"><strong>Data Final:</strong> Esta é a data limite de exibição. A promoção será exibida até o dia anterior à data selecionada. Por exemplo, se selecionar 25/01/2025, a promoção será exibida até 24/01/2025 às 23:59:59.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </h3>
+                    <div class="grid-cols-2">
+                        <div>
+                            <label for="startDate">Data Inicial</label>
+                            <input type="date" id="startDate" name="start_date" required>
+                        </div>
+                        <div>
+                            <label for="endDate">Data Final</label>
+                            <input type="date" id="endDate" name="end_date" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call to Action -->
+                <div class="form-section">
+                    <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md mb-4">
+                        <label for="ctaToggle" class="text-sm font-medium text-gray-700">Adicionar CTA (Call to Action):</label>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="ctaToggle" name="has_cta" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                    <div id="ctaSection" class="space-y-4 hidden">
+                        <div>
+                            <label for="buttonText">Texto do Botão</label>
+                            <input type="text" id="buttonText" name="cta_text" 
+                                placeholder="Ex: Comprar Agora">
+                        </div>
+                        <div>
+                            <label for="buttonUrl">URL do Botão</label>
+                            <input type="url" id="buttonUrl" name="cta_url" 
+                                placeholder="https://...">
+                        </div>
+                        <div class="relative">
+                            <label for="buttonDelay">Delay do Botão (segundos)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="buttonDelay" name="button_delay" min="0" value="0" class="w-full">
+                                <div class="group relative ml-2">
+                                    <i data-lucide="info" class="w-5 h-5 text-gray-400 cursor-help"></i>
+                                    <div class="absolute hidden group-hover:block bg-gray-800 text-white text-sm rounded py-1 px-2 right-0 bottom-full mb-2 w-64 z-50">
+                                        <div class="relative">
+                                            <div class="absolute h-2 w-2 bg-gray-800 transform rotate-45 -bottom-1 right-4"></div>
+                                            Se o valor for 0, o botão será exibido imediatamente. Caso contrário, o botão será mostrado após o número de segundos especificado.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" class="secondary-button close">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="primary-button">
+                        <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                        Salvar Promoção
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- JS específico para promoções -->
+    <script src="/static/src/js/promote.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            
+            // Função para limpar o formulário
+            function resetPromotionForm() {
+                document.getElementById('newPromotionForm').reset();
+                document.getElementById('ctaSection').classList.add('hidden');
+                document.getElementById('ctaToggle').checked = false;
+                document.getElementById('previewImage').classList.add('hidden');
+                document.getElementById('uploadPlaceholder').classList.remove('hidden');
+                document.getElementById('videoUrl').value = '';
+                document.getElementById('buttonDelay').value = '0';
+                
+                // Garantir que a seção de imagem esteja visível e vídeo oculta por padrão
+                document.querySelector('input[name="mediaType"][value="image"]').checked = true;
+                document.getElementById('imageUploadSection').classList.remove('hidden');
+                document.getElementById('videoUrlSection').classList.add('hidden');
+            }
+            
+            // Tornar a área de upload de imagem clicável
+            document.querySelector('.media-preview').addEventListener('click', function() {
+                document.getElementById('promotionImage').click();
+            });
+
+            // Toggle para seção CTA
+            document.getElementById('ctaToggle').addEventListener('change', function() {
+                document.getElementById('ctaSection').classList.toggle('hidden', !this.checked);
+            });
+
+            // Sobrescrever a função addNewPromotion global para incluir a limpeza
+            window.addNewPromotion = function() {
+                resetPromotionForm();
+                document.getElementById('newPromotionModal').style.display = 'block';
+            };
+        });
+    </script>
+</body>
+</html>

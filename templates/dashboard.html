@@ -1,93 +1,260 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Área do Aluno</title>
     <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <link rel="stylesheet" href="/static/src/css/dashboard.css">
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vidstack CSS -->
+    <link rel="stylesheet" href="https://cdn.vidstack.io/player.css" />
+    <link rel="stylesheet" href="https://cdn.vidstack.io/plyr.css" />
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
 </head>
-<body class="min-h-screen bg-[#111827] text-white">
-    <nav class="fixed top-0 w-full bg-gradient-to-b from-black to-transparent z-50 py-4">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between">
-                <h1 id="platformName" class="text-red-600 text-3xl font-bold">Área de Membros</h1>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
+    <!-- Nav superior -->
+    <nav class="bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/dashboard">
+                <h1 id="platformName" class="text-2xl font-bold text-white hover:text-primary transition-colors">MembriumWL</h1>
+            </a>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button id="userMenuButton" class="flex items-center space-x-2 text-gray-200 hover:text-primary transition-colors">
+                        <div class="bg-gray-700 rounded-full p-2">
+                            <i data-lucide="user" class="h-5 w-5 text-gray-200"></i>
+                        </div>
+                        <span id="studentNameNav" class="hidden md:block">Carregando...</span>
+                        <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                    </button>
+                    <!-- Menu dropdown do usuário -->
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 hidden z-10">
+                        <a href="/my_profile" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700">
+                            <i data-lucide="user" class="h-4 w-4 inline mr-2"></i> Meu Perfil
+                        </a>
+                        <div class="border-t border-gray-700 my-1"></div>
+                        <a href="/logout" class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700">
+                            <i data-lucide="log-out" class="h-4 w-4 inline mr-2"></i> Sair
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4">
-        <div class="pt-32 md:pt-48 mb-16 md:mb-24">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4">Bem-vindo <span id="studentName"></span></h2>
-            <p class="text-lg md:text-xl max-w-2xl mb-6">Explore seus cursos e continue sua jornada de aprendizado.</p>
-            <button class="bg-white text-black hover:bg-gray-200 px-4 py-2 rounded flex items-center">
-                <i data-lucide="play" class="mr-2 h-4 w-4"></i> Começar
-            </button>
+    <div class="container mx-auto px-4 py-8 animation-fadeInUp flex-grow">
+        <!-- Hero section com boas-vindas -->
+        <div class="hero-section bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl shadow-xl mb-8 overflow-hidden relative">
+            <div class="absolute inset-0 bg-opacity-70 bg-gray-900"></div>
+            <div class="relative z-10 p-8 md:p-12">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
+                    <div class="mb-6 md:mb-0">
+                        <h2 class="text-3xl font-bold text-white mb-2">Bem-vindo, <span id="studentName" class="text-primary">Aluno</span></h2>
+                        <p class="text-gray-300 max-w-xl">Continue sua jornada de aprendizado e desenvolvimento. Seus cursos estão esperando por você!</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button id="continueButton" class="bg-primary hover:bg-red-700 text-white px-4 py-2 rounded-md transition-all flex items-center">
+                            <i data-lucide="play" class="h-4 w-4 mr-2"></i> Continuar Aprendendo
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="myCourses" class="mb-16">
-            <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-                Meus Cursos
-                <i data-lucide="chevron-right" class="ml-2 h-6 w-6"></i>
-            </h2>
-            <div id="myCoursesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Cursos do aluno serão inseridos aqui dinamicamente -->
+        <!-- Estatísticas do aluno -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="stat-card bg-white rounded-lg shadow p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Cursos Ativos</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="activeCourses">0</h3>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full">
+                    <i data-lucide="book-open" class="h-6 w-6 text-primary"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card bg-white rounded-lg shadow p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Aulas Concluídas</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="completedLessons">0</h3>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full">
+                    <i data-lucide="check-circle" class="h-6 w-6 text-primary"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card bg-white rounded-lg shadow p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Progresso Geral</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="overallProgress">0%</h3>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full">
+                    <i data-lucide="bar-chart-2" class="h-6 w-6 text-primary"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção de cursos -->
+        <div class="bg-white rounded-lg shadow-md mb-8">
+            <div class="border-b border-gray-200 p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        <i data-lucide="book" class="h-5 w-5 mr-2 text-primary"></i>
+                        Meus Cursos
+                    </h2>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                        <div class="relative w-full sm:w-auto">
+                            <input type="text" id="courseSearch" placeholder="Buscar cursos..." 
+                                class="w-full sm:w-auto pl-12 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                            <i data-lucide="search" class="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+                        </div>
+                        <div class="hidden md:flex items-center space-x-2">
+                            <span class="text-sm text-gray-500 mr-1">Visualizar:</span>
+                            <button class="bg-gray-100 p-2 rounded hover:bg-gray-200 transition-colors active" id="gridView">
+                                <i data-lucide="layout-grid" class="h-5 w-5 text-gray-600"></i>
+                            </button>
+                            <button class="bg-gray-100 p-2 rounded hover:bg-gray-200 transition-colors" id="listView">
+                                <i data-lucide="list" class="h-5 w-5 text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div id="myCoursesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    <!-- Cursos do aluno serão inseridos aqui dinamicamente -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção de cursos em destaque -->
+        <div class="bg-white rounded-lg shadow-md mb-8">
+            <div class="border-b border-gray-200 p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        <i data-lucide="star" class="h-5 w-5 mr-2 text-primary"></i>
+                        Cursos em Destaque
+                    </h2>
+                    <span class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded">Recomendado para você</span>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div id="featuredCourses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Será preenchido dinamicamente se houver cursos em destaque -->
+                    <div class="text-center text-gray-500 col-span-full py-8" id="noFeaturedPlaceholder">
+                        <i data-lucide="sparkles" class="h-12 w-12 mx-auto mb-4 text-gray-300"></i>
+                        <p>Em breve novos cursos disponíveis para você!</p>
+                        <p class="text-sm text-gray-400 mt-2">Fique atento às novidades.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Inicializa os ícones do Lucide
-        lucide.createIcons();
+    <!-- Modal de Promoção -->
+    <div id="promotionModal" class="promotion-modal">
+        <div class="promotion-modal-content">
+            <span class="close-promotion" id="closePromotion">&times;</span>
+            
+            <div class="promotion-modal-header">
+                <h2 id="promotionTitle" class="text-2xl font-bold text-gray-800 text-center"></h2>
+            </div>
+            
+            <div class="promotion-modal-body">
+                <!-- Container para imagem ou vídeo -->
+                <div id="promotionMedia" class="mb-4">
+                    <!-- Será preenchido dinamicamente com imagem ou vídeo -->
+                </div>
+                
+                <div id="promotionDescription" class="text-gray-700 mb-4 text-center"></div>
+                
+                <!-- Botão CTA (será mostrado ou escondido dependendo da configuração) -->
+                <div id="promotionCTA" class="mt-8 text-center" style="display: none;">
+                    <a id="promotionCTAButton" href="#" target="_blank" 
+                       class="inline-flex items-center justify-center cta-button cta-pulse w-full md:w-[80%]">
+                        <span class="cta-shimmer"></span>
+                        <i data-lucide="external-link" class="h-6 w-6 mr-3 text-white"></i>
+                        <span class="text-xl font-bold text-white">Clique aqui</span>
+                        <i data-lucide="chevron-right" class="h-6 w-6 ml-3 text-white"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Showcase (para cursos em destaque) -->
+    <div id="showcaseModal" class="showcase-modal">
+        <div class="showcase-modal-content">
+            <div id="showcasePriceTag" class="showcase-price-tag" style="display: none;">R$ 0,00</div>
+            
+            <div class="showcase-modal-header">
+                <h2 id="showcaseTitle" class="text-2xl font-bold text-white"></h2>
+            </div>
+            
+            <div class="showcase-modal-body">
+                <!-- Container para imagem ou vídeo -->
+                <div id="showcaseMedia" class="mb-6">
+                    <!-- Será preenchido dinamicamente com imagem ou vídeo -->
+                </div>
+                
+                <div id="showcaseDescription" class="text-gray-700 mb-4"></div>
+                
+                <!-- Botão de compra (será mostrado ou escondido dependendo da configuração) -->
+                <div id="purchaseButtonContainer" class="mt-8 text-center" style="display: none;">
+                    <a id="purchaseButton" href="#" target="_blank" 
+                       class="purchase-button inline-flex items-center justify-center">
+                        <span class="purchase-shimmer"></span>
+                        <i data-lucide="unlock" class="h-6 w-6 mr-3 text-white"></i>
+                        <span class="text-xl font-bold text-white">Desbloquear</span>
+                    </a>
+                    <p class="text-sm text-gray-500 mt-3">Desbloqueie acesso imediato a este conteúdo exclusivo</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Função para criar um card de curso
-        function createCourseCard(course) {
-            return `
-                <a href="/course/${course.id}" class="relative group block">
-                    <img src="/static/uploads/${course.image || 'placeholder.jpg'}" alt="${course.name}" class="w-full h-64 object-cover rounded-md transition-transform duration-300 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-80 transition-opacity duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-md">
-                        <h3 class="text-white text-center font-bold px-4">${course.name}</h3>
-                    </div>
-                </a>
-            `;
-        }
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-600 text-sm">&copy; 2024 <span id="footerPlatformName">MembriumWL</span>. Todos os direitos reservados.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" id="supportEmailLink" class="text-gray-500 hover:text-primary transition-colors flex items-center" style="display: none;">
+                        <i data-lucide="mail" class="h-5 w-5 mr-1"></i>
+                        <span id="supportEmail" class="text-sm">suporte@exemplo.com</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-        // Função para carregar o nome da plataforma e do aluno
-        function loadPlatformAndStudentName() {
-            fetch('/dashboard', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.platform_name) {
-                    document.getElementById('platformName').textContent = data.platform_name;
-                }
-                if (data.student_name) {
-                    document.getElementById('studentName').textContent = data.student_name;
-                }
-            })
-            .catch(error => console.error('Erro ao carregar os dados:', error));
-        }
-
-        // Função para carregar os cursos do aluno
-        function loadStudentCourses() {
-            fetch('/dashboard/student-courses')
-                .then(response => response.json())
-                .then(courses => {
-                    const myCoursesGrid = document.getElementById('myCoursesGrid');
-                    myCoursesGrid.innerHTML = courses.map(createCourseCard).join('');
-                })
-                .catch(error => console.error('Erro ao carregar os cursos do aluno:', error));
-        }
-
-        // Carrega os dados quando a página é carregada
-        window.onload = function() {
-            loadPlatformAndStudentName();
-            loadStudentCourses();
-        };
-    </script>
+    <!-- JavaScript -->
+    <script src="https://cdn.vidstack.io/player/latest/vidstack-player.js" type="module"></script>
+    <script src="/static/src/js/dashboard.js"></script>
 </body>
 </html>

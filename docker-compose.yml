@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.0 
+    image: traefik:v3.0
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -9,58 +9,63 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=seu_email@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
-      - "443:443" 
+      - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro 
-      - ./letsencrypt:/letsencrypt 
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
     networks:
       - traefik_proxy
 
   db:
-    image: postgres:17
+    image: postgres:15
     environment:
-      POSTGRES_DB: wldigital
+      POSTGRES_DB: membriumwl
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     healthcheck:
-         test: ["CMD-SHELL", "pg_isready -U postgres"]
-         interval: 5s
-         timeout: 5s
-         retries: 5
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432" 
+      - "5432:5432"
     networks:
       - traefik_proxy
 
   web:
-    image: ghcr.io/celipi/member_area:latest
+    build: .
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`seu_dominio.com`)"
+      - "traefik.http.routers.web.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.web.entrypoints=web,websecure"
       - "traefik.http.routers.web.tls=true"
       - "traefik.http.routers.web.tls.certresolver=letsencrypt"
       - "traefik.http.services.web.loadbalancer.server.port=3000"
-    environment:
-       DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@db:5432/wldigital
+    # ports:
+    #   - "3000:3000"
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/membriumwl
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
     volumes:
-      - uploads_data:/app/static/uploads
+      - .:/app
+      - temp_data:/app/temp
     networks:
       - traefik_proxy
 
 volumes:
   postgres_data:
+  temp_data:
   letsencrypt:
-  uploads_data:
 
 networks:
   traefik_proxy:

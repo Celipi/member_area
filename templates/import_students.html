@@ -5,165 +5,186 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Importar Alunos</title>
     <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-dark: #111827;
-            --bg-medium: #1F2937;
-            --bg-light: #374151;
-            --accent: #B91C1C;
-            --text-light: #ffffff;
-            --text-gray: #9CA3AF;
-            --border-color: #4B5563;
+        html {
+            scroll-behavior: smooth;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            line-height: 1.6;
-            padding: 2rem;
         }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .spinner {
+            animation: spin 1s linear infinite;
         }
-
-        h1 {
-            margin-bottom: 1rem;
-        }
-
-        .back-button {
-            display: inline-block;
-            margin-bottom: 1rem;
-            color: var(--text-gray);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .back-button:hover {
-            color: var(--text-light);
-        }
-
-        .card {
-            background-color: var(--bg-medium);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        select, input[type="file"] {
-            width: 100%;
-            padding: 0.5rem;
-            background-color: var(--bg-light);
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
-            color: var(--text-light);
-        }
-
-        .button {
-            background-color: var(--accent);
-            color: var(--text-light);
-            border: none;
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .button:hover {
-            background-color: #8B1515;
-        }
-
-        .progress-bar {
-            width: 100%;
-            background-color: var(--bg-light);
-            border-radius: 0.25rem;
-            margin-top: 1rem;
-            overflow: hidden;
-        }
-
-        .progress {
-            width: 0;
-            height: 20px;
-            background-color: var(--accent);
-            transition: width 0.3s ease;
-        }
-
-        .progress-text {
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
-        .instructions {
-            background-color: var(--bg-light);
-            border-radius: 0.25rem;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .instructions h3 {
-            margin-bottom: 0.5rem;
-        }
-
-        .instructions ul {
-            padding-left: 1.5rem;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <a href="/admin" class="back-button"><i class="fas fa-arrow-left"></i> Voltar para o Painel</a>
-        <h1>Importar Alunos</h1>
-        <div class="card">
-            <form id="importForm" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="course">Selecione o Curso:</label>
-                    <select id="course" name="course" required>
-                        <option value="">Selecione um curso</option>
-                        <!-- Opções de cursos serão preenchidas via JavaScript -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="csvFile">Arquivo CSV:</label>
-                    <input type="file" id="csvFile" name="csvFile" accept=".csv" required>
-                </div>
-                <button type="submit" class="button">Importar Alunos</button>
-            </form>
-            <div class="progress-bar">
-                <div class="progress" id="progressBar"></div>
-            </div>
-            <div class="progress-text" id="progressText"></div>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+    <div class="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <!-- Cabeçalho -->
+        <div class="mb-8">
+            <a href="/admin/students-panel" class="inline-flex items-center text-gray-500 hover:text-primary transition duration-200 mb-4">
+                <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
+                Voltar para o Painel
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center">
+                <i data-lucide="upload" class="h-8 w-8 mr-3 text-primary"></i>
+                Importar Alunos
+            </h1>
+            <p class="mt-2 text-gray-600">Importe múltiplos alunos para um curso específico através de um arquivo CSV.</p>
         </div>
-        <div class="instructions">
-            <h3>Instruções para o arquivo CSV:</h3>
-            <ul>
-                <li>O arquivo deve conter as colunas "name" e "email".</li>
-                <li>Cada linha deve representar um aluno.</li>
-                <li>A senha padrão para todos os alunos importados será "senha123".</li>
-                <li>Se um aluno já existir no sistema, ele será adicionado ao curso selecionado.</li>
-            </ul>
+
+        <!-- Card Principal -->
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <!-- Formulário -->
+            <div class="p-6 border-b border-gray-200">
+                <form id="importForm" enctype="multipart/form-data" class="space-y-6">
+                    <div>
+                        <label for="course" class="block text-sm font-medium text-gray-700 mb-1">Selecione o Curso:</label>
+                        <select id="course" name="course" required class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Selecione um curso</option>
+                            <!-- Opções de cursos serão preenchidas via JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="csvFile" class="block text-sm font-medium text-gray-700 mb-1">Arquivo CSV:</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-primary transition-colors">
+                            <div class="space-y-1 text-center">
+                                <i data-lucide="file-text" class="mx-auto h-12 w-12 text-gray-400"></i>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="csvFile" class="relative cursor-pointer rounded-md font-medium text-primary hover:text-red-700">
+                                        <span>Selecione um arquivo</span>
+                                        <input id="csvFile" name="csvFile" type="file" accept=".csv" class="sr-only" required>
+                                    </label>
+                                    <p class="pl-1">ou arraste e solte aqui</p>
+                                </div>
+                                <p class="text-xs text-gray-500">CSV apenas</p>
+                                <p id="fileSelected" class="text-xs text-primary font-medium hidden">Arquivo selecionado</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full flex items-center justify-center px-4 py-3 bg-primary text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                        <span id="uploadIcon"><i data-lucide="upload" class="h-5 w-5 mr-2"></i></span>
+                        <span id="buttonText">Importar Alunos</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Barra de Progresso -->
+            <div class="p-6 bg-gray-50">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">Progresso da Importação</h3>
+                    <div class="relative pt-1">
+                        <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
+                            <div id="progressBar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary" style="width: 0%"></div>
+                        </div>
+                        <div id="progressText" class="text-center text-sm text-gray-600">0/0 Alunos Cadastrados</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Instruções -->
+        <div class="mt-8 bg-white shadow rounded-lg overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                    <i data-lucide="info" class="h-5 w-5 mr-2 text-primary"></i>
+                    Instruções para o arquivo CSV
+                </h3>
+                <div class="mt-4 space-y-4">
+                    <div class="rounded-md bg-blue-50 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i data-lucide="file-text" class="h-5 w-5 text-blue-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">Formato do arquivo</h3>
+                                <div class="mt-2 text-sm text-blue-700">
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        <li>O arquivo deve conter as colunas <code class="bg-blue-100 px-1 py-0.5 rounded">name</code> e <code class="bg-blue-100 px-1 py-0.5 rounded">email</code>.</li>
+                                        <li>Cada linha deve representar um aluno.</li>
+                                        <li>A senha padrão para todos os alunos importados será <code class="bg-blue-100 px-1 py-0.5 rounded">senha123</code>.</li>
+                                        <li>Se um aluno já existir no sistema, ele será adicionado ao curso selecionado.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="rounded-md bg-yellow-50 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i data-lucide="alert-triangle" class="h-5 w-5 text-yellow-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-yellow-800">Dica importante</h3>
+                                <div class="mt-2 text-sm text-yellow-700">
+                                    <p>Certifique-se de que os e-mails estejam corretos para garantir que os alunos possam acessar o curso.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-100 p-4 rounded-md">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Exemplo de arquivo CSV:</h4>
+                        <div class="bg-white p-3 rounded border border-gray-300 font-mono text-sm overflow-auto">
+                            name,email<br>
+                            João Silva,joao@example.com<br>
+                            Maria Santos,maria@example.com<br>
+                            Carlos Oliveira,carlos@example.com
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Initialize Lucide Icons -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            
+            // Mostrar nome do arquivo quando selecionado
+            document.getElementById('csvFile').addEventListener('change', function(e) {
+                const fileName = e.target.files[0]?.name;
+                const fileSelected = document.getElementById('fileSelected');
+                
+                if (fileName) {
+                    fileSelected.textContent = `Arquivo selecionado: ${fileName}`;
+                    fileSelected.classList.remove('hidden');
+                } else {
+                    fileSelected.classList.add('hidden');
+                }
+            });
+
             // Carregar cursos
             fetch('/admin/all-courses')
                 .then(response => response.json())
@@ -179,7 +200,8 @@
     
             // Manipular envio do formulário
             const form = document.getElementById('importForm');
-            const submitButton = form.querySelector('button[type="submit"]');
+            const buttonText = document.getElementById('buttonText');
+            const uploadIcon = document.getElementById('uploadIcon');
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
     
@@ -188,8 +210,10 @@
                 const formData = new FormData(this);
     
                 // Mudar o botão para ícone de loading
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importando...';
-                submitButton.disabled = true;
+                uploadIcon.innerHTML = '<i data-lucide="loader" class="h-5 w-5 mr-2 spinner"></i>';
+                buttonText.textContent = 'Importando...';
+                lucide.createIcons();
+                form.querySelector('button[type="submit"]').disabled = true;
     
                 // Resetar a barra de progresso
                 progressBar.style.width = '0%';
@@ -236,8 +260,10 @@
                             } catch (e) {
                                 console.error('Erro ao processar resposta final:', buffer, e);
                             }
-                            submitButton.innerHTML = 'Importar Alunos';
-                            submitButton.disabled = false;
+                            buttonText.innerHTML = 'Importar Alunos';
+                            uploadIcon.innerHTML = '<i data-lucide="upload" class="h-5 w-5 mr-2"></i>';
+                            lucide.createIcons();
+                            form.querySelector('button[type="submit"]').disabled = false;
                             return;
                         }
     
@@ -249,8 +275,10 @@
                 .catch(error => {
                     console.error('Erro:', error);
                     alert('Ocorreu um erro durante a importação.');
-                    submitButton.innerHTML = 'Importar Alunos';
-                    submitButton.disabled = false;
+                    buttonText.innerHTML = 'Importar Alunos';
+                    uploadIcon.innerHTML = '<i data-lucide="upload" class="h-5 w-5 mr-2"></i>';
+                    lucide.createIcons();
+                    form.querySelector('button[type="submit"]').disabled = false;
                 });
             });
         });

@@ -3,110 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pré-visualização: {{ current_lesson.title }} - {{ course.name }}</title>
+    <title>{{ current_lesson.title }} - {{ course.name }}</title>
     <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <link rel="stylesheet" href="/static/src/css/module_lessons.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Vidstack Player -->
     <link rel="stylesheet" href="https://cdn.vidstack.io/player.css" />
     <link rel="stylesheet" href="https://cdn.vidstack.io/plyr.css" />
+    <!-- Pass video data and lesson id to JS -->
+    <script type="text/javascript">
+        window.video_url = "{{ current_lesson.video_url }}";
+        window.video_title = "{{ current_lesson.title }}";
+        window.lesson_id = "{{ current_lesson.id }}";
+        window.button_delay = {% if current_lesson.button_delay %}{{ current_lesson.button_delay }}{% else %}null{% endif %};
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="min-h-screen bg-[#111827] text-white">
-    <nav class="bg-[#111827] p-4 flex items-center justify-between">
-        <a href="{{ url_for('preview_course', course_id=course.id) }}" class="text-gray-300 hover:text-white bg-transparent hover:bg-white/10 px-3 py-2 rounded-md flex items-center">
-            <i data-lucide="chevron-left" class="mr-2 h-4 w-4"></i> Voltar para Módulos
-        </a>
-        <div class="bg-yellow-500 text-black px-4 py-2 rounded-md">
-            Modo de Pré-visualização
+<body class="min-h-screen bg-gray-50 font-sans text-gray-800 flex flex-col">
+    <!-- Nav superior -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{{ url_for('preview_course', course_id=course.id) }}" class="flex items-center text-gray-700 hover:text-primary transition-colors">
+                <i data-lucide="chevron-left" class="mr-2 h-5 w-5"></i>
+                <span>Voltar para Módulos</span>
+                <span class="ml-2 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
+                    Modo Pré-visualização
+                </span>
+            </a>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 flex-grow">
         <div class="lg:flex lg:space-x-8">
+            <!-- Coluna principal com o vídeo e conteúdo da aula -->
             <div class="lg:w-3/4">
-                <div class="relative aspect-video bg-black">
-                    <div id="target"></div>
-                </div>
+                <!-- Player de Vídeo -->
+                <div id="target"></div>
 
-                <div class="bg-[#1F2937] p-4 flex items-center justify-between">
+                {% if current_lesson.has_button %}
+                <div id="ctaButton" class="mt-8 text-center" style="display: none;">
+                    <a href="{{ current_lesson.button_link }}" target="_blank" 
+                       class="inline-flex items-center justify-center cta-button cta-pulse w-full md:w-[80%]">
+                        <span class="cta-shimmer"></span>
+                        <i data-lucide="external-link" class="h-6 w-6 mr-3 text-white"></i>
+                        <span class="text-xl font-bold text-white">{{ current_lesson.button_text }}</span>
+                        <i data-lucide="chevron-right" class="h-6 w-6 ml-3 text-white"></i>
+                    </a>
+                    <p class="text-sm text-gray-500 mt-2">Clique para acessar conteúdo exclusivo</p>
+                </div>
+                {% endif %}
+
+                <!-- Controles de navegação e botão de conclusão -->
+                <div class="glass-effect rounded-lg shadow-md p-4 flex items-center justify-between mt-6">
                     <div class="flex items-center space-x-4">
                         {% if current_lesson.order > 1 %}
-                        <a href="{{ url_for('preview_lessons', course_id=course.id, module_id=module.id, lesson_order=current_lesson.order-1) }}" class="text-gray-300 hover:text-white">
-                            <i data-lucide="skip-back" class="h-4 w-4"></i>
+                        <a href="{{ url_for('preview_lessons', course_id=course.id, module_id=module.id, lesson_order=current_lesson.order-1) }}" 
+                           class="flex items-center bg-white px-3 py-2 rounded-md text-gray-600 hover:text-primary transition-colors shadow-sm hover:shadow">
+                            <i data-lucide="circle-chevron-left" class="h-5 w-5 mr-1"></i>
+                            <span class="hidden md:inline">Anterior</span>
                         </a>
                         {% endif %}
+                        
                         {% if current_lesson.order < lessons|length %}
-                        <a href="{{ url_for('preview_lessons', course_id=course.id, module_id=module.id, lesson_order=current_lesson.order+1) }}" class="text-gray-300 hover:text-white">
-                            <i data-lucide="skip-forward" class="h-4 w-4"></i>
+                        <a href="{{ url_for('preview_lessons', course_id=course.id, module_id=module.id, lesson_order=current_lesson.order+1) }}" 
+                           class="flex items-center bg-white px-3 py-2 rounded-md text-gray-600 hover:text-primary transition-colors shadow-sm hover:shadow">
+                            <span class="hidden md:inline">Próxima</span>
+                            <i data-lucide="circle-chevron-right" class="h-5 w-5 ml-1"></i>
                         </a>
                         {% endif %}
                     </div>
+                    <button id="markAsCompletedBtn" 
+                            class="flex items-center px-4 py-2 rounded-md transition-all {% if lesson_completed %}bg-gray-100 text-gray-500{% else %}bg-primary hover:bg-red-700 text-white{% endif %} {% if lesson_completed %}opacity-80 cursor-not-allowed{% else %}shadow-sm hover:shadow{% endif %}"
+                            {% if lesson_completed %}disabled{% endif %}>
+                        <i data-lucide="check-circle" class="mr-2 h-5 w-5"></i>
+                        {% if lesson_completed %}
+                            Aula concluída
+                        {% else %}
+                            Marcar como concluído
+                        {% endif %}
+                    </button>
                 </div>
 
-                <div class="bg-[#1F2937] p-6 mt-4">
-                    <h3 class="text-xl font-bold text-white mb-4">{{ current_lesson.title }}</h3>
-                    <p class="text-gray-300">{{ formatted_description | safe }}</p>
+                <!-- Conteúdo da aula -->
+                <div class="bg-white rounded-lg shadow-md p-6 mt-6 lesson-content">
+                    <div class="flex items-center mb-6">
+                        <span class="bg-red-100 text-primary rounded-full w-10 h-10 flex items-center justify-center mr-3 shadow-inner">
+                            <i data-lucide="book-open" class="h-5 w-5"></i>
+                        </span>
+                        <h3 class="text-2xl font-bold text-gray-800">{{ current_lesson.title }}</h3>
+                    </div>
+                    
+                    <div class="prose max-w-none text-gray-600 mt-6 border-t border-gray-100 pt-6">
+                        {{ formatted_description | safe }}
+                    </div>
 
-                    {% if document %}
-                    <div class="mt-4">
-                        <a href="{{ url_for('static', filename='uploads/' + document.filename) }}" 
-                        download="{{ document.filename }}"
-                        class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-300">
-                            <i data-lucide="download" class="h-4 w-4 mr-2"></i>
-                            Baixar material complementar
-                        </a>
+                    {% if current_lesson.documents %}
+                    <div class="mt-8 p-6 border border-gray-200 rounded-lg bg-gray-50 document-card">
+                        <h4 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
+                            <i data-lucide="file-text" class="h-5 w-5 mr-2 text-primary"></i>
+                            Material Complementar
+                        </h4>
+                        <p class="text-gray-600 mb-4">Este material complementar irá ajudar você a aprofundar seu conhecimento sobre o tema desta aula.</p>
+                        
+                        <!-- Desktop Table (hidden on mobile) -->
+                        <div class="hidden md:block overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Nome do arquivo
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Ações
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for doc in current_lesson.documents %}
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            <div class="flex items-center">
+                                                <i data-lucide="file" class="h-4 w-4 mr-2 text-gray-400"></i>
+                                                <span class="truncate max-w-xs">{{ doc.filename }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                            <div class="flex items-center justify-center space-x-3">
+                                                <a href="{{ url_for('static', filename='uploads/' + doc.filename) }}" 
+                                                   target="_blank"
+                                                   class="text-blue-600 hover:text-blue-800 transition-colors"
+                                                   title="Visualizar">
+                                                    <i data-lucide="eye" class="h-5 w-5"></i>
+                                                </a>
+                                                <a href="{{ url_for('static', filename='uploads/' + doc.filename) }}" 
+                                                   download="{{ doc.filename }}"
+                                                   class="text-primary hover:text-red-700 transition-colors"
+                                                   title="Baixar">
+                                                    <i data-lucide="download" class="h-5 w-5"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Card Layout (shown only on mobile) -->
+                        <div class="md:hidden space-y-3">
+                            {% for doc in current_lesson.documents %}
+                            <div class="mobile-doc-card bg-white p-3 rounded-lg shadow-sm">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center flex-1 min-w-0 mb-2">
+                                        <i data-lucide="file" class="h-4 w-4 mr-2 text-gray-400 flex-shrink-0"></i>
+                                        <p class="text-sm font-medium text-gray-700 truncate">{{ doc.filename }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end space-x-2 pt-2 border-t border-gray-100">
+                                    <a href="{{ url_for('static', filename='uploads/' + doc.filename) }}" 
+                                       target="_blank"
+                                       class="mobile-doc-btn bg-blue-50 text-blue-600 hover:bg-blue-100">
+                                        <i data-lucide="eye" class="h-4 w-4 mr-1"></i>
+                                        Visualizar
+                                    </a>
+                                    <a href="{{ url_for('static', filename='uploads/' + doc.filename) }}" 
+                                       download="{{ doc.filename }}"
+                                       class="mobile-doc-btn bg-red-50 text-primary hover:bg-red-100">
+                                        <i data-lucide="download" class="h-4 w-4 mr-1"></i>
+                                        Baixar
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
+            <!-- Barra lateral com lista de aulas -->
             <div class="lg:w-1/4 mt-8 lg:mt-0">
-                <div class="bg-[#1F2937] p-4">
-                    <h3 class="text-xl font-bold text-white mb-4">{{ module.name }}</h3>
-                    <div class="space-y-2">
+                <div class="bg-white rounded-lg shadow-md">
+                    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i data-lucide="list" class="h-5 w-5 mr-2 text-primary"></i>
+                            <h3 class="text-lg font-semibold text-gray-800">Lista de aulas</h3>
+                        </div>
+                        <span class="bg-primary text-white text-xs font-medium px-2 py-1 rounded-full">
+                            {{ lessons|length }} aulas
+                        </span>
+                    </div>
+                    
+                    <div class="p-2 space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-thin">
                         {% for lesson in lessons %}
                         <a href="{{ url_for('preview_lessons', course_id=course.id, module_id=module.id, lesson_order=lesson.order) }}" 
-                           class="flex items-center p-2 rounded {% if lesson.order == current_lesson.order %}bg-[#374151]{% else %}hover:bg-[#374151]{% endif %}">
-                            <div class="flex-1">
-                                <h4 class="text-white font-medium">{{ lesson.title }}</h4>
-                                <!-- Aqui você pode adicionar a duração da lição se tiver essa informação -->
+                           class="flex items-center p-3 rounded-md hover:bg-gray-50 transition-colors lesson-hover {% if lesson.order == current_lesson.order %}lesson-item-active{% endif %}">
+                            <div class="mr-3 flex-shrink-0">
+                                {% if lesson.order < current_lesson.order %}
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-inner">
+                                    <i data-lucide="check" class="h-4 w-4"></i>
+                                </div>
+                                {% elif lesson.order == current_lesson.order %}
+                                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white animate-pulse-slow">
+                                    <i data-lucide="play" class="h-4 w-4"></i>
+                                </div>
+                                {% else %}
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shadow-inner">
+                                    {{ lesson.order }}
+                                </div>
+                                {% endif %}
                             </div>
-                            {% if lesson.order == current_lesson.order %}
-                            <i data-lucide="play" class="h-4 w-4 text-white"></i>
-                            {% endif %}
+                            <div class="flex-1">
+                                <h4 class="text-gray-800 font-medium line-clamp-2 lesson-title {% if lesson.order == current_lesson.order %}text-primary{% endif %}">
+                                    {{ lesson.title }}
+                                </h4>
+                                <!-- Barra de progresso para indicar se a aula foi parcialmente assistida -->
+                                {% if lesson.order == current_lesson.order %}
+                                <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                                    <div class="progress-bar h-1 rounded-full" style="width: 30%"></div>
+                                </div>
+                                {% endif %}
+                            </div>
                         </a>
                         {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Card com informações do curso -->
+                <div class="bg-white rounded-lg shadow-md mt-6 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 flex items-center">
+                        <span class="bg-red-100 text-primary rounded-full w-8 h-8 flex items-center justify-center mr-3 shadow-inner">
+                            <i data-lucide="info" class="h-4 w-4"></i>
+                        </span>
+                        <h3 class="text-lg font-semibold text-gray-800">Sobre o curso</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mr-3 shadow-inner">
+                                <i data-lucide="book-open" class="h-5 w-5 text-primary"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Total de aulas</p>
+                                <p class="font-medium text-gray-800">{{ lessons|length }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mr-3 shadow-inner">
+                                <i data-lucide="award" class="h-5 w-5 text-primary"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-500">Seu progresso</p>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div class="progress-bar h-2 rounded-full" style="width: {{ (current_lesson.order / lessons|length) * 100 }}%"></div>
+                                </div>
+                                <p class="text-xs text-right text-gray-500 mt-1">{{ '%.2f' % ((current_lesson.order / lessons|length)*100) }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dica para alunos -->
+                <div class="bg-blue-50 rounded-lg p-4 mt-6 border border-blue-100">
+                    <div class="flex items-start">
+                        <i data-lucide="lightbulb" class="h-5 w-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                        <p class="text-sm text-blue-700">
+                            Lembre-se de marcar as aulas como concluídas para acompanhar seu progresso. Você pode assistir às aulas quantas vezes quiser.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Inicializa os ícones do Lucide
-        lucide.createIcons();
-    </script>
-
-    <script type="module">
-      import { PlyrLayout, VidstackPlayer } from 'https://cdn.vidstack.io/player';
-
-      function getYouTubeVideoId(url) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
-      }
-
-      const videoUrl = "{{ current_lesson.video_url }}";
-      const videoId = getYouTubeVideoId(videoUrl);
-
-      const player = await VidstackPlayer.create({
-        target: '#target',
-        title: '{{ current_lesson.title }}',
-        src: videoUrl,
-        poster: `https://i3.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
-        layout: new PlyrLayout({
-          thumbnails: 'https://files.vidstack.io/sprite-fight/thumbnails.vtt',
-        }),
-      });
-    </script>
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto py-4">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-600 text-sm">&copy; 2025 <span id="footerPlatformName">MembriumWL</span>. Todos os direitos reservados.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" id="supportEmailLink" class="text-gray-500 hover:text-primary transition-colors flex items-center" style="display: none;">
+                        <i data-lucide="mail" class="h-5 w-5 mr-1"></i>
+                        <span id="supportEmail" class="text-sm">suporte@exemplo.com</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script src="/static/src/js/module_lessons.js"></script>
 </body>
 </html>

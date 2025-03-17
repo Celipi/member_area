@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - MembriumWL</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <meta name="admin-email" content="{{ admin_email }}">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <link rel="stylesheet" href="/static/src/css/settings.css">
+    <!-- Replace Font Awesome with Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="shadow-lg w-64 flex-shrink-0 flex flex-col border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-primary flex items-center">
+                    <i data-lucide="settings" class="h-6 w-6 mr-3"></i>
+                    MembriumWL
+                </h1>
+            </div>
+            <nav class="flex-grow p-6">
+                <p class="text-xs font-medium text-gray-400 mb-6 uppercase tracking-wider">Gerenciamento</p>
+                <ul class="space-y-4">
+                    <li>
+                        <button onclick="window.location.href='/admin'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Cursos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/students-panel'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="users" class="h-5 w-5 mr-3"></i> Alunos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/showcase'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="store" class="h-5 w-5 mr-3"></i> Vitrine
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/promote'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="megaphone" class="h-5 w-5 mr-3"></i> Promoções
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/faq'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="help-circle" class="h-5 w-5 mr-3"></i> FAQ
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/file-manager'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="file" class="h-5 w-5 mr-3"></i> Arquivos
+                        </button>
+                    </li>
+                    <li>
+                        <button class="w-full flex items-center px-5 py-3 bg-primary text-white rounded-md transition-all">
+                            <i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configurações
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-6 border-t border-gray-200 space-y-4">
+                <button onclick="window.open('https://help.membriumwl.com/', '_blank')" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="life-buoy" class="h-5 w-5 mr-3"></i> Ajuda
+                </button>
+                <button onclick="window.location.href='/logout'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="log-out" class="h-5 w-5 mr-3"></i> Sair
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="flex-grow p-6 overflow-y-auto">
+            <div class="mx-auto max-w-5xl">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Configurações</h2>
+                    <p class="text-gray-500">Personalize sua plataforma e configure integrações.</p>
+                </div>
+                
+                <!-- Alerta de integrações -->
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i data-lucide="alert-triangle" class="h-5 w-5 text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                A MembriumWL não dispara mensagens automaticamente. É necessário integrar ao menos uma opção (Evolution API ou Brevo) para notificar seus alunos. Ou faça sua própria configuração externa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Configuração da Plataforma -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <i data-lucide="layout" class="h-5 w-5 mr-4"></i>
+                        <h3>Configuração da Plataforma</h3>
+                    </div>
+                    <div class="settings-body">
+                        <form id="platformSettings">
+                            <div class="form-group">
+                                <label for="platformName" class="form-label">Nome da Plataforma</label>
+                                <input type="text" id="platformName" class="form-control" value="MembriumWL" placeholder="Nome da sua plataforma">
+                                <p class="text-xs text-gray-500 mt-1">Este nome será exibido no cabeçalho e no título das páginas.</p>
+                            </div>
+                            <div class="form-footer">
+                                <button type="submit" class="settings-btn primary">Salvar Alterações</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Informações do Usuário -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <i data-lucide="user" class="h-5 w-5 mr-4"></i>
+                        <h3>Informações do Administrador</h3>
+                    </div>
+                    <div class="settings-body">
+                        <form id="userSettings">
+                            <div class="form-group">
+                                <label for="userEmail" class="form-label">Email</label>
+                                <input type="email" id="userEmail" class="form-control" value="admin@exemplo.com" placeholder="Seu email de acesso">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="currentPassword" class="form-label">Senha Atual</label>
+                                    <input type="password" id="currentPassword" class="form-control" placeholder="Digite sua senha atual">
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword" class="form-label">Nova Senha</label>
+                                    <input type="password" id="newPassword" class="form-control" placeholder="Digite uma nova senha">
+                                </div>
+                            </div>
+                            <div class="form-footer">
+                                <button type="submit" class="settings-btn primary">Atualizar Informações</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Email de Suporte -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <i data-lucide="mail" class="h-5 w-5 mr-4"></i>
+                        <h3>Email de Suporte</h3>
+                    </div>
+                    <div class="settings-body">
+                        <form id="supportSettings">
+                            <div class="form-group">
+                                <label for="supportEmail" class="form-label">Email de Suporte</label>
+                                <input type="email" id="supportEmail" class="form-control" placeholder="suporte@seudominio.com">
+                                <p class="text-xs text-gray-500 mt-1">Este email será exibido para os alunos caso precisem de suporte.</p>
+                            </div>
+                            <div class="form-footer">
+                                <button type="submit" class="settings-btn primary">Salvar Email de Suporte</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Integrações -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <i data-lucide="plug" class="h-5 w-5 mr-4"></i>
+                        <h3>Integrações</h3>
+                    </div>
+                    <div class="settings-body">
+                        <!-- Integração com Brevo -->
+                        <div class="mb-6">
+                            <div class="integration-toggle">
+                                <div class="flex items-center">
+                                    <img src="/static/fixed/brevo.png" alt="Brevo" class="integration-logo">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700">Brevo Email Marketing</h4>
+                                        <p class="text-xs text-gray-500">Envie emails automáticos para seus alunos</p>
+                                    </div>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 select-none">
+                                    <input type="checkbox" id="brevoToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                                    <label for="brevoToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+                            
+                            <div id="brevoContent" class="integration-content">
+                                <form id="brevoSettings">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label for="sender_name" class="form-label">Nome do Remetente</label>
+                                            <input type="text" id="sender_name" class="form-control" placeholder="Nome que aparecerá como remetente">
+                                            <p class="text-xs text-gray-500 mt-1">Nome que será exibido como remetente do email</p>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="sender_email" class="form-label">Email do Remetente</label>
+                                            <input type="email" id="sender_email" class="form-control" placeholder="email@seudominio.com">
+                                            <p class="text-xs text-gray-500 mt-1">Email que será usado como remetente</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="brevoApiKey" class="form-label">API Key</label>
+                                        <div class="relative">
+                                            <input type="password" id="brevoApiKey" class="form-control pr-10" placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxx">
+                                            <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800" data-target="brevoApiKey">
+                                                <i data-lucide="eye" class="h-5 w-5"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                                                Obter sua API Key na sua conta Brevo
+                                            </a>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="template-container">
+                                        <div class="template-header">
+                                            Template de Email
+                                            <div class="tooltip">
+                                                <i data-lucide="info" class="h-4 w-4 info-icon"></i>
+                                                <div class="tooltip-text">
+                                                    <p class="mb-1"><strong>Como usar variáveis:</strong></p>
+                                                    <p>Clique em uma tag para inseri-la automaticamente no corpo da mensagem. Cada tag será substituída pelos dados reais do aluno.</p>
+                                                    <p class="mt-2">
+                                                        <strong>Variáveis disponíveis:</strong><br>
+                                                        <span class="text-xs"><strong>[[name]]</strong> - Nome completo do aluno</span><br>
+                                                        <span class="text-xs"><strong>[[first_name]]</strong> - Primeiro nome do aluno</span><br>
+                                                        <span class="text-xs"><strong>[[email]]</strong> - Email de acesso do aluno</span><br>
+                                                        <span class="text-xs"><strong>[[password]]</strong> - Senha de acesso</span><br>
+                                                        <span class="text-xs"><strong>[[curso]]</strong> - Nome do curso</span><br>
+                                                        <span class="text-xs"><strong>[[link]]</strong> - Link de acesso padrão</span><br>
+                                                        <span class="text-xs"><strong>[[fast_link]]</strong> - Link de acesso rápido (sem login)</span>
+                                                    </p>
+                                                    <button type="button" class="learn-more-btn mt-2 w-full py-1 px-2 bg-white text-primary hover:bg-gray-50 text-xs font-medium rounded border border-primary">
+                                                        Saiba mais sobre variáveis
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="template-tags">
+                                            <span class="template-tag" data-target="brevoEmailTemplate">[[name]]</span>
+                                            <span class="template-tag" data-target="brevoEmailTemplate">[[first_name]]</span>
+                                            <span class="template-tag" data-target="brevoEmailTemplate">[[email]]</span>
+                                            <span class="template-tag" data-target="brevoEmailTemplate">[[link]]</span>
+                                            <span class="template-tag" data-target="brevoEmailTemplate">[[password]]</span>
+                                            <span class="template-tag" data-target="brevoEmailTemplate">[[curso]]</span>
+                                            <span class="template-tag" data-target="brevoEmailTemplate">[[fast_link]]</span>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="brevoEmailSubject" class="form-label">Assunto do Email</label>
+                                            <input type="text" id="brevoEmailSubject" class="form-control" value="Bem-vindo ao seu curso [[first_name]]!">
+                                        </div>
+                                        
+                                        <div class="form-group mb-0">
+                                            <label for="brevoEmailTemplate" class="form-label">Corpo do Email</label>
+                                            <textarea id="brevoEmailTemplate" class="form-control h-48" placeholder="Conteúdo do email...">Olá [[name]],
+
+Parabéns! Você agora tem acesso ao nosso curso.
+
+Aqui estão suas credenciais de acesso:
+
+Email: [[email]]
+Senha: [[password]]
+Link de acesso comum: [[link]]
+Link de acesso rápido: [[fast_link]]
+
+Qualquer dúvida, entre em contato conosco.
+
+Atenciosamente,
+Equipe de Suporte</textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-footer">
+                                        <button type="submit" class="settings-btn primary">Salvar Configurações</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Integração com Evolution API -->
+                        <div class="mb-6">
+                            <div class="integration-toggle">
+                                <div class="flex items-center">
+                                    <img src="/static/fixed/evolutionapi.png" alt="Evolution API" class="integration-logo">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700">Evolution API</h4>
+                                        <p class="text-xs text-gray-500">Envie mensagens de WhatsApp para seus alunos</p>
+                                    </div>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 select-none">
+                                    <input type="checkbox" id="evolutionToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                                    <label for="evolutionToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+                            
+                            <div id="evolutionContent" class="integration-content">
+                                <form id="evolutionSettings">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label for="evolutionUrl" class="form-label">URL da Evolution API</label>
+                                            <div class="flex items-center">
+                                                <input type="url" id="evolutionUrl" class="form-control" placeholder="https://seu-dominio.com">
+                                                <!-- <button type="button" id="detectVersionBtn" class="ml-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md flex items-center" title="Detectar versão automaticamente">
+                                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                                </button> -->
+                                            </div>
+                                            <p id="urlError" class="text-xs text-red-500 mt-1 hidden">URL inválida. Use apenas o domínio base, ex: https://meudominio.com</p>
+                                        </div>
+                                        <div class="form-group relative">
+                                            <label for="evolutionApiKey" class="form-label">API Key</label>
+                                            <div class="relative">
+                                                <input type="password" id="evolutionApiKey" class="form-control pr-10" placeholder="Sua API Key da Evolution">
+                                                <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800" data-target="evolutionApiKey">
+                                                    <i data-lucide="eye" class="h-5 w-5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label for="evolutionVersion" class="form-label flex items-center">
+                                                Versão da Evolution API
+                                            </label>
+                                            <div class="flex items-center">
+                                                <select id="evolutionVersion" class="form-control">
+                                                    <option value="">Selecione a versão</option>
+                                                    <option value="1.8.x">1.8.x ou inferior</option>
+                                                    <option value="2.x.x">2.x.x ou superior</option>
+                                                </select>
+                                                <button type="button" id="detectVersionBtn" class="ml-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md flex items-center" title="Detectar versão automaticamente">
+                                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                                </button>
+                                            </div>
+                                            <div id="versionInfo" class="mt-2 text-xs hidden"></div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="evolutionInstance" class="form-label flex items-center">
+                                                Instância do WhatsApp
+                                                <div class="tooltip ml-1">
+                                                    <i data-lucide="info" class="h-4 w-4 info-icon"></i>
+                                                    <div class="tooltip-text">
+                                                        <p>A instância é o número do WhatsApp que enviará as mensagens.</p>
+                                                        <p>Você pode ter múltiplas instâncias configuradas na sua Evolution API.</p>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                            <div class="flex items-center">
+                                                <select id="evolutionInstance" class="form-control">
+                                                    <option value="">Selecione a instância</option>
+                                                </select>
+                                                <button type="button" id="fetchInstancesBtn" class="ml-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md flex items-center" title="Buscar instâncias disponíveis">
+                                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="template-container">
+                                        <div class="template-header">
+                                            Template de Mensagem do WhatsApp
+                                            <div class="tooltip">
+                                                <i data-lucide="info" class="h-4 w-4 info-icon"></i>
+                                                <div class="tooltip-text">
+                                                    <p class="mb-1"><strong>Como usar variáveis:</strong></p>
+                                                    <p>Clique em uma tag para inseri-la automaticamente na mensagem. Cada tag será substituída pelos dados reais do aluno.</p>
+                                                    <p class="mt-2">
+                                                        <strong>Variáveis disponíveis:</strong><br>
+                                                        <span class="text-xs"><strong>[[name]]</strong> - Nome completo do aluno</span><br>
+                                                        <span class="text-xs"><strong>[[first_name]]</strong> - Primeiro nome do aluno</span><br>
+                                                        <span class="text-xs"><strong>[[email]]</strong> - Email de acesso do aluno</span><br>
+                                                        <span class="text-xs"><strong>[[password]]</strong> - Senha de acesso</span><br>
+                                                        <span class="text-xs"><strong>[[curso]]</strong> - Nome do curso</span><br>
+                                                        <span class="text-xs"><strong>[[link]]</strong> - Link de acesso padrão</span><br>
+                                                        <span class="text-xs"><strong>[[fast_link]]</strong> - Link de acesso rápido (sem login)</span>
+                                                    </p>
+                                                    <button type="button" class="learn-more-btn mt-2 w-full py-1 px-2 bg-white text-primary hover:bg-gray-50 text-xs font-medium rounded border border-primary">
+                                                        Saiba mais sobre variáveis
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="template-tags">
+                                            <span class="template-tag" data-target="evolutionTemplate">[[name]]</span>
+                                            <span class="template-tag" data-target="evolutionTemplate">[[first_name]]</span>
+                                            <span class="template-tag" data-target="evolutionTemplate">[[email]]</span>
+                                            <span class="template-tag" data-target="evolutionTemplate">[[link]]</span>
+                                            <span class="template-tag" data-target="evolutionTemplate">[[password]]</span>
+                                            <span class="template-tag" data-target="evolutionTemplate">[[curso]]</span>
+                                            <span class="template-tag" data-target="evolutionTemplate">[[fast_link]]</span>
+                                        </div>
+                                        
+                                        <div class="form-group mb-0">
+                                            <label for="evolutionTemplate" class="form-label">Mensagem</label>
+                                            <textarea id="evolutionTemplate" class="form-control h-48" placeholder="Conteúdo da mensagem...">Olá [[first_name]]! 👋
+
+Seu acesso ao curso foi liberado! ✅
+
+*Acesse com os dados abaixo:*
+
+📧 *Login:* [[email]]
+🔑 *Senha:* [[password]]
+
+🌐 *Link de acesso comum:* [[link]]
+🔑 *Link de acesso rápido:* [[fast_link]]
+
+Se precisar de ajuda, estamos à disposição!</textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-footer">
+                                        <button type="submit" class="settings-btn primary">Salvar Configurações</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Integração com GROQ AI -->
+                        <div class="mb-6">
+                            <div class="integration-toggle">
+                                <div class="flex items-center">
+                                    <img src="/static/fixed/groq.png" alt="GROQ AI" class="integration-logo">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700">GROQ AI</h4>
+                                        <p class="text-xs text-gray-500">IA gratuita com acesso ao DeepSeek R1 e Llama 3</p>
+                                    </div>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 select-none">
+                                    <input type="checkbox" id="groqToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                                    <label for="groqToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+                            
+                            <div id="groqContent" class="integration-content">
+                                <form id="groqSettings">
+                                    <div class="form-group">
+                                        <label for="groqApiKey" class="form-label">API Key</label>
+                                        <div class="relative">
+                                            <input type="password" id="groqApiKey" class="form-control pr-10" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx">
+                                            <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800" data-target="groqApiKey">
+                                                <i data-lucide="eye" class="h-5 w-5"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                                                Obter sua API Key na plataforma GROQ
+                                            </a>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="form-footer">
+                                        <button type="submit" class="settings-btn primary">Salvar Configurações</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Integração com OpenAI -->
+                        <div>
+                            <div class="integration-toggle">
+                                <div class="flex items-center">
+                                    <img src="/static/fixed/openai.png" alt="OpenAI" class="integration-logo">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700">OpenAI</h4>
+                                        <p class="text-xs text-gray-500">IA premium com acesso ao ChatGPT - mais avançado e inteligente</p>
+                                    </div>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 select-none">
+                                    <input type="checkbox" id="openaiToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                                    <label for="openaiToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+                            
+                            <div id="openaiContent" class="integration-content">
+                                <form id="openaiSettings">
+                                    <div class="form-group">
+                                        <label for="openaiApiKey" class="form-label">API Key</label>
+                                        <div class="relative">
+                                            <input type="password" id="openaiApiKey" class="form-control pr-10" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx">
+                                            <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 hover:text-gray-800" data-target="openaiApiKey">
+                                                <i data-lucide="eye" class="h-5 w-5"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                                                Obter sua API Key na plataforma OpenAI
+                                            </a>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="form-footer">
+                                        <button type="submit" class="settings-btn primary">Salvar Configurações</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal de Explicação de Variáveis -->
+    <div id="variablesModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50" id="modalOverlay"></div>
+        <div class="bg-white rounded-lg shadow-xl z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-800">Guia de Variáveis de Template</h2>
+                <button id="closeVariablesModal" class="text-gray-400 hover:text-gray-500">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <p class="mb-4">Use variáveis de template para personalizar suas mensagens para cada aluno. Quando a mensagem for enviada, estas variáveis serão substituídas automaticamente pelos dados reais.</p>
+                
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i data-lucide="lightbulb" class="h-5 w-5 text-blue-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700">
+                                <strong>Dica:</strong> Mensagens personalizadas têm taxas de abertura e engajamento muito maiores. Use o nome do aluno e detalhes específicos do curso para criar uma experiência mais personalizada.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="text-lg font-medium text-gray-800 mb-3">Variáveis Disponíveis</h3>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-gray-200 mr-3">
+                                <code class="text-blue-600 font-medium">[[name]]</code>
+                            </div>
+                            <div>
+                                <p class="font-medium">Nome Completo</p>
+                                <p class="text-sm text-gray-600">Exibe o nome completo do aluno.</p>
+                                <p class="text-xs text-gray-500 mt-1">Ex: "João Silva Pereira"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-gray-200 mr-3">
+                                <code class="text-blue-600 font-medium">[[first_name]]</code>
+                            </div>
+                            <div>
+                                <p class="font-medium">Primeiro Nome</p>
+                                <p class="text-sm text-gray-600">Exibe apenas o primeiro nome do aluno. Ideal para saudações.</p>
+                                <p class="text-xs text-gray-500 mt-1">Ex: "João"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-gray-200 mr-3">
+                                <code class="text-blue-600 font-medium">[[email]]</code>
+                            </div>
+                            <div>
+                                <p class="font-medium">Email do Aluno</p>
+                                <p class="text-sm text-gray-600">Exibe o endereço de email utilizado para acesso à plataforma.</p>
+                                <p class="text-xs text-gray-500 mt-1">Ex: "joao.silva@exemplo.com"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-gray-200 mr-3">
+                                <code class="text-blue-600 font-medium">[[password]]</code>
+                            </div>
+                            <div>
+                                <p class="font-medium">Senha de Acesso</p>
+                                <p class="text-sm text-gray-600">Exibe a senha temporária gerada para o primeiro acesso do aluno.</p>
+                                <p class="text-xs text-gray-500 mt-1">Ex: "Abc123XyZ"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-gray-200 mr-3">
+                                <code class="text-blue-600 font-medium">[[curso]]</code>
+                            </div>
+                            <div>
+                                <p class="font-medium">Nome do Curso</p>
+                                <p class="text-sm text-gray-600">Exibe o nome do curso ao qual o aluno recebeu acesso.</p>
+                                <p class="text-xs text-gray-500 mt-1">Ex: "Curso Avançado de Marketing Digital"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-gray-200 mr-3">
+                                <code class="text-blue-600 font-medium">[[link]]</code>
+                            </div>
+                            <div>
+                                <p class="font-medium">Link de Acesso Padrão</p>
+                                <p class="text-sm text-gray-600">Exibe o link para acesso à plataforma, onde o aluno precisará inserir email e senha.</p>
+                                <p class="text-xs text-gray-500 mt-1">Ex: "https://seudominio.com/login"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-white px-3 py-2 rounded-lg border border-gray-200 mr-3">
+                                <code class="text-blue-600 font-medium">[[fast_link]]</code>
+                            </div>
+                            <div>
+                                <p class="font-medium">Link de Acesso Rápido</p>
+                                <p class="text-sm text-gray-600">Exibe um link especial que leva o aluno diretamente para a área de membros, sem necessidade de login.</p>
+                                <p class="text-xs text-gray-500 mt-1">Ex: "https://seudominio.com/acesso-rapido/xyz123abc"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Exemplos de Uso</h3>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-medium mb-2">Email de Boas-Vindas</h4>
+                        <div class="bg-white p-3 rounded border border-gray-200 text-sm">
+                            <p>Olá <span class="text-blue-600">[[first_name]]</span>,</p>
+                            <p class="my-2">Bem-vindo ao <span class="text-blue-600">[[curso]]</span>! Estamos muito felizes em ter você como aluno.</p>
+                            <p class="my-2">Use as seguintes credenciais para acessar o curso:</p>
+                            <p>Login: <span class="text-blue-600">[[email]]</span><br>
+                               Senha: <span class="text-blue-600">[[password]]</span></p>
+                            <p class="my-2">Acesse agora mesmo: <span class="text-blue-600">[[link]]</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium mb-2">Mensagem de WhatsApp</h4>
+                        <div class="bg-white p-3 rounded border border-gray-200 text-sm">
+                            <p>✨ Olá <span class="text-blue-600">[[first_name]]</span>! ✨</p>
+                            <p class="my-2">Seu acesso ao curso <span class="text-blue-600">[[curso]]</span> já está disponível!</p>
+                            <p class="my-2">Acesse usando:</p>
+                            <p>📧 <span class="text-blue-600">[[email]]</span><br>
+                               🔑 <span class="text-blue-600">[[password]]</span></p>
+                            <p class="my-2">Ou use nosso link de acesso rápido: <span class="text-blue-600">[[fast_link]]</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div class="flex justify-end">
+                    <button type="button" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-red-800 transition-colors" id="closeModalButton">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- JavaScript principal -->
+    <script src="/static/src/js/settings.js"></script>
+</body>
+</html>

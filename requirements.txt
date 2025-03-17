@@ -1,3 +1,12 @@
-Flask
-Flask-SQLAlchemy
+Flask==2.3.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.21
+Werkzeug==2.3.7
+PyMySQL==1.1.0
+python-dotenv==1.0.0
+Flask-Migrate==4.0.5
+requests==2.31.0
+groq>=0.4.3
+openai>=1.0.0
+pytz
 psycopg2-binary

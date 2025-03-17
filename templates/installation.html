@@ -3,232 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instalação da Plataforma</title>
+    <title>Instalação - Nova Plataforma</title>
     <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-dark: #111827;
-            --bg-medium: #1F2937;
-            --bg-light: #374151;
-            --text-light: #ffffff;
-            --text-gray: #D1D5DB;
-            --accent: #B91C1C;
-            --accent-hover: #991B1B;
-            --error: #F87171;
+        /* Animações e efeitos */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .installation-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 1rem;
-            line-height: 1.6;
-        }
-
-        .card {
-            background-color: var(--bg-medium);
-            border-radius: 1rem;
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 450px;
+        .installation-card:hover {
+            transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
-        .card-title {
-            font-size: 1.75rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 2rem;
-            color: var(--text-light);
+        .bg-pattern {
+            background-image: radial-gradient(#B91C1C 0.5px, transparent 0.5px), radial-gradient(#B91C1C 0.5px, #f9fafb 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            opacity: 0.05;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
         }
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-gray);
-            font-size: 0.95rem;
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+            opacity: 0;
         }
 
-        input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--bg-light);
-            background-color: var(--bg-light);
-            color: var(--text-light);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
+        .shine-effect:hover::after {
+            opacity: 1;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
-        }
-
-        input::placeholder {
-            color: #6B7280;
-        }
-
-        button {
-            width: 100%;
-            padding: 0.85rem;
-            background-color: var(--accent);
-            color: var(--text-light);
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background-color 0.3s, transform 0.1s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        button:hover {
-            background-color: var(--accent-hover);
-        }
-
-        button:active {
-            transform: translateY(1px);
-        }
-
-        button i {
-            margin-right: 0.5rem;
-        }
-
-        .error {
-            color: var(--error);
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            padding: 0.75rem;
-            background-color: rgba(248, 113, 113, 0.1);
-            border-radius: 0.5rem;
-        }
-
-        .error i {
-            margin-right: 0.5rem;
-        }
-
-        @media (max-width: 480px) {
-            .card {
-                padding: 2rem;
-            }
-
-            .card-title {
-                font-size: 1.5rem;
-            }
+        @keyframes shine {
+            0% { transform: rotate(45deg) translateY(-100%); }
+            100% { transform: rotate(45deg) translateY(100%); }
         }
     </style>
 </head>
-<body>
-    <div class="card">
-        <h1 class="card-title">Instalação da Plataforma</h1>
-        <form id="installationForm" method="POST" action="{{ url_for('install') }}">
-            <div class="form-group">
-                <label for="activation_key">Chave de Ativação</label>
-                <input type="text" id="activation_key" name="activation_key" required>
+<body class="bg-gray-50 font-sans min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative">
+    <!-- Padrão de fundo -->
+    <div class="bg-pattern absolute inset-0 pointer-events-none"></div>
+
+    <div class="w-full max-w-lg animate-fadeIn relative z-10">
+        <!-- Card de Instalação -->
+        <div class="installation-card bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-8 border border-gray-100">
+            <div class="text-center mb-8">
+                <div class="inline-block p-3 bg-red-50 rounded-full mb-4">
+                    <i data-lucide="settings" class="h-8 w-8 text-primary"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    Configuração Inicial
+                </h1>
+                <p class="text-gray-500 text-sm mt-2">Configure sua nova plataforma em poucos passos</p>
+                <div class="mt-4 h-1 w-16 bg-primary rounded mx-auto"></div>
             </div>
-            <div class="form-group">
-                <label for="platform_name">Nome da Plataforma</label>
-                <input type="text" id="platform_name" name="platform_name" placeholder="TechFlix" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email do Administrador</label>
-                <input type="email" id="email" name="email" placeholder="admin@techflix.com" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <div class="form-group">
-                <label for="confirmPassword">Confirmar Senha</label>
-                <input type="password" id="confirmPassword" required>
-            </div>
-            <div id="errorMessage" class="error" style="display: none;">
-                <i class="fas fa-exclamation-circle"></i>
-                <span></span>
-            </div>
-            <button type="submit">
-                <i class="fas fa-cog"></i>
-                Instalar Plataforma
-            </button>
-        </form>
+
+            <form id="installationForm" method="POST" action="{{ url_for('install') }}" class="space-y-6">
+                <!-- Platform Name Input -->
+                <div class="space-y-2">
+                    <label for="platform_name" class="block text-sm font-medium text-gray-700">Nome da Plataforma</label>
+                    <div class="relative group">
+                        <i data-lucide="layout-dashboard" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-hover:text-primary transition-colors"></i>
+                        <input 
+                            type="text" 
+                            id="platform_name" 
+                            name="platform_name" 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="TechFlix" 
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- Admin Email Input -->
+                <div class="space-y-2">
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email do Administrador</label>
+                    <div class="relative group">
+                        <i data-lucide="mail" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-hover:text-primary transition-colors"></i>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="admin@techflix.com" 
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div class="space-y-2">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
+                    <div class="relative group">
+                        <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-hover:text-primary transition-colors"></i>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="••••••••"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- Confirm Password Input -->
+                <div class="space-y-2">
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirmar Senha</label>
+                    <div class="relative group">
+                        <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-hover:text-primary transition-colors"></i>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="••••••••"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden rounded-md bg-red-50 p-4 text-sm text-red-700 flex items-center" role="alert">
+                    <i data-lucide="alert-circle" class="h-5 w-5 mr-2 text-red-400"></i>
+                    <span></span>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="shine-effect w-full bg-primary text-white py-3 rounded-md hover:bg-red-700 transition-all flex items-center justify-center shadow-md hover:shadow-lg">
+                    <i data-lucide="settings" class="h-5 w-5 mr-2"></i>
+                    <span class="font-medium">Instalar Plataforma</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Powered by Ilumin -->
+        <div class="text-center mt-4">
+            <a href="https://ilumin.app" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="text-gray-400 hover:text-primary text-sm transition-all inline-flex items-center justify-center">
+                Powered by
+                <span class="font-semibold ml-1">Ilumin</span>
+                <i data-lucide="external-link" class="h-3 w-3 ml-1"></i>
+            </a>
+        </div>
     </div>
 
+    <!-- Initialize Lucide Icons and Form Validation -->
     <script>
-        document.getElementById('installationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            var password = document.getElementById('password').value;
-            var confirmPassword = document.getElementById('confirmPassword').value;
-            var errorMessage = document.getElementById('errorMessage');
-            var activationKey = document.getElementById('activation_key').value;
-    
-            if (password !== confirmPassword) {
-                errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>As senhas não coincidem.</span>';
-                errorMessage.style.display = 'flex';
-                return;
-            }
-    
-            // Função para obter o IP do usuário
-            function getUserIP(callback) {
-                fetch('https://api.ipify.org?format=json')
-                    .then(response => response.json())
-                    .then(data => callback(data.ip))
-                    .catch(error => {
-                        console.error('Erro ao obter IP:', error);
-                        callback(null);
-                    });
-            }
-    
-            // Obter o IP e fazer a requisição
-            getUserIP(function(ip) {
-                // Verificar a chave de ativação
-                fetch('https://n8n-n8n.gumktq.easypanel.host/webhook/03841fae-2776-498b-a6a3-7999fc5e695e', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        activation_key: activationKey,
-                        real_ip: ip || 'Não foi possível obter o IP'
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.return === true) {
-                        // Se a chave for válida, envie o formulário
-                        document.getElementById('installationForm').submit();
-                    } else {
-                        // Se a chave for inválida, mostre a mensagem de erro
-                        errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Chave de ativação incorreta ou já utilizada!</span>';
-                        errorMessage.style.display = 'flex';
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const form = document.getElementById('installationForm');
+            const submitButton = form.querySelector('button[type="submit"]');
+            const inputs = form.querySelectorAll('input');
+            const errorMessage = document.getElementById('errorMessage');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (password !== confirmPassword) {
+                    errorMessage.querySelector('span').textContent = 'As senhas não coincidem.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+
+                // Disable button and show loading state
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-75');
+                submitButton.innerHTML = `
+                    <i data-lucide="loader-2" class="h-5 w-5 mr-2 animate-spin"></i>
+                    <span class="font-medium">Instalando...</span>
+                `;
+                lucide.createIcons();
+
+                // Submit the form after a small delay to show the animation
+                setTimeout(() => {
+                    this.submit();
+                }, 500);
+            });
+
+            // Input focus effects
+            inputs.forEach(input => {
+                const icon = input.parentElement.querySelector('[data-lucide]');
+                
+                input.addEventListener('focus', () => {
+                    icon.classList.remove('text-gray-400');
+                    icon.classList.add('text-primary');
+                });
+                
+                input.addEventListener('blur', () => {
+                    if (!input.value) {
+                        icon.classList.remove('text-primary');
+                        icon.classList.add('text-gray-400');
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Erro ao verificar a chave de ativação. Tente novamente.</span>';
-                    errorMessage.style.display = 'flex';
                 });
             });
         });

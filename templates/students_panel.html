@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Alunos</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <!-- Replace Font Awesome with Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .pagination-btn {
+            min-width: 2.5rem;
+            height: 2.5rem;
+            padding: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+            margin: 0 0.25rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .pagination-btn:hover:not([disabled]) {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+        .pagination-btn.active {
+            background: #B91C1C;
+            border-color: #B91C1C;
+            color: white;
+        }
+        .pagination-btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .table-container {
+            overflow-x: auto;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        .student-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .student-table th {
+            position: relative;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+            color: #4b5563;
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .student-table th:first-child {
+            border-top-left-radius: 0.5rem;
+        }
+        .student-table th:last-child {
+            border-top-right-radius: 0.5rem;
+        }
+        .student-table tr:last-child td:first-child {
+            border-bottom-left-radius: 0.5rem;
+        }
+        .student-table tr:last-child td:last-child {
+            border-bottom-right-radius: 0.5rem;
+        }
+        .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            color: #4b5563;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .filter-badge button {
+            margin-left: 0.5rem;
+            color: #9ca3af;
+        }
+        .filter-badge button:hover {
+            color: #4b5563;
+        }
+        .search-input-container {
+            position: relative;
+            width: 100%;
+        }
+        .search-input-container .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #9ca3af;
+        }
+        .search-input {
+            padding-left: 2.5rem !important; /* Aumentando o padding à esquerda para acomodar o ícone */
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="shadow-lg w-64 flex-shrink-0 flex flex-col border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-primary flex items-center">
+                    <i data-lucide="layout-dashboard" class="h-6 w-6 mr-3"></i>
+                    MembriumWL
+                </h1>
+            </div>
+            <nav class="flex-grow p-6">
+                <p class="text-xs font-medium text-gray-400 mb-6 uppercase tracking-wider">Gerenciamento</p>
+                <ul class="space-y-4">
+                    <li>
+                        <button onclick="window.location.href='/admin'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Cursos
+                        </button>
+                    </li>
+                    <li>
+                        <button class="w-full flex items-center px-5 py-3 bg-primary text-white rounded-md transition-all">
+                            <i data-lucide="users" class="h-5 w-5 mr-3"></i> Alunos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/showcase'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="store" class="h-5 w-5 mr-3"></i> Vitrine
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/promote'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="megaphone" class="h-5 w-5 mr-3"></i> Promoções
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/faq'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="help-circle" class="h-5 w-5 mr-3"></i> FAQ
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/file-manager'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="file" class="h-5 w-5 mr-3"></i> Arquivos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/settings'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configurações
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-6 border-t border-gray-200 space-y-4">
+                <button onclick="window.open('https://help.membriumwl.com/', '_blank')" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="life-buoy" class="h-5 w-5 mr-3"></i> Ajuda
+                </button>
+                <button onclick="window.location.href='/logout'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="log-out" class="h-5 w-5 mr-3"></i> Sair
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="flex-grow p-6 overflow-y-auto">
+            <div class="mx-auto max-w-7xl">
+                <!-- Top section with heading and stats -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Gerenciamento de Alunos</h2>
+                        <p class="text-gray-500">Gerencie todos os seus alunos em um só lugar.</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <button onclick="addNewStudent()" class="bg-primary hover:bg-red-700 text-white px-4 py-2 rounded-md shadow-sm flex items-center transition-all">
+                            <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i>
+                            Adicionar Aluno
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Total de Alunos</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1" id="totalStudents">0</h3>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-full">
+                            <i data-lucide="users" class="h-6 w-6 text-primary"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-medium text-gray-700">Ações Rápidas</h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="resetFilters()" class="flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700 transition-all">
+                                <i data-lucide="refresh-cw" class="h-4 w-4 mr-1.5"></i>
+                                Limpar filtros
+                            </button>
+                            <button onclick="importStudents()" class="flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-sm text-gray-700 transition-all">
+                                <i data-lucide="upload" class="h-4 w-4 mr-1.5"></i>
+                                Importar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search and filter bar -->
+                <div class="bg-white rounded-lg shadow mb-6 p-4">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <div class="relative flex-grow md:w-3/5 search-input-container">
+                            <div class="search-icon">
+                                <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
+                            </div>
+                            <input type="text" id="searchInput" placeholder="Buscar alunos por nome ou email..." 
+                                class="search-input block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <div class="md:w-2/5">
+                            <select id="courseFilter" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                                <option value="">Todos os cursos</option>
+                                <!-- Course options will be added here dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Students table -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="table-container">
+                        <table class="student-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Cursos</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <!-- Students will be populated here dynamically -->
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="flex justify-center">
+                                            <i data-lucide="loader" class="animate-spin h-6 w-6 text-primary"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="p-4 border-t border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="text-sm text-gray-500 mb-4 md:mb-0">
+                                <span id="paginationInfo">Mostrando alunos</span>
+                            </div>
+                            <div class="flex justify-center" id="pagination">
+                                <!-- Pagination controls will be added here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Student Modal -->
+    <div id="newStudentModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md mx-auto mt-24 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Adicionar Novo Aluno</h2>
+                <button class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+            <form id="newStudentForm" class="space-y-4">
+                <div>
+                    <label for="studentEmail" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
+                    <input type="email" id="studentEmail" name="email" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label for="studentPassword" class="block text-sm font-medium text-gray-700 mb-1">Senha:</label>
+                    <input type="password" id="studentPassword" name="password" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
+                    <input type="text" id="studentName" name="name" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+
+                <div>
+                    <label for="studentCourses" class="block text-sm font-medium text-gray-700 mb-1">Cursos:</label>
+                    <select id="studentCourses" name="courses" required class="course-select w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <!-- Course options will be added here dynamically -->
+                    </select>
+                </div>
+                
+                <button type="submit" class="w-full bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all">Adicionar Aluno</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editStudentModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md mx-auto mt-24 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Editar Aluno</h2>
+                <button class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+            <form id="editStudentForm" class="space-y-4">
+                <input type="hidden" id="editStudentId" name="id">
+                
+                <div>
+                    <label for="editStudentEmail" class="block text-sm font-medium text-gray-700 mb-1">Email:</label>
+                    <input type="email" id="editStudentEmail" name="email" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label for="editStudentPassword" class="block text-sm font-medium text-gray-700 mb-1">Nova Senha (deixe em branco para manter a atual):</label>
+                    <input type="password" id="editStudentPassword" name="password" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label for="editStudentName" class="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
+                    <input type="text" id="editStudentName" name="name" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <button type="submit" class="w-full bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Courses Modal -->
+    <div id="manageCoursesModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md mx-auto mt-24 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Gerenciar Cursos</h2>
+                <button class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p id="studentCoursesName" class="font-medium text-gray-700">Aluno: </p>
+            </div>
+            
+            <h3 class="font-medium text-gray-700 mb-2">Cursos atuais</h3>
+            <div id="currentCoursesList" class="mb-4 p-3 border border-gray-200 rounded-md max-h-40 overflow-y-auto">
+                <!-- Current courses will be listed here -->
+                <p class="text-gray-500 text-sm">Carregando cursos...</p>
+            </div>
+            
+            <form id="addCourseForm" class="space-y-4">
+                <input type="hidden" id="manageCourseStudentId" name="id">
+                <div>
+                    <label for="addCourseSelect" class="block text-sm font-medium text-gray-700 mb-1">Adicionar ao curso:</label>
+                    <select id="addCourseSelect" name="course" required class="course-select w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <!-- Course options will be added here dynamically -->
+                    </select>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="button" onclick="addCourseToStudent()" class="flex-1 bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all flex items-center justify-center">
+                        <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+                        Adicionar 
+                    </button>
+                    <button type="button" class="close flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300 transition-all flex items-center justify-center">
+                        <i data-lucide="x" class="h-4 w-4 mr-2"></i>
+                        Fechar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- JavaScript for student panel -->
+    <script src="/static/src/js/students_panel.js"></script>
+</body>
+</html>

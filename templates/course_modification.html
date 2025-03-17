@@ -5,1026 +5,401 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modificação de Curso</title>
     <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+
+        // Definindo o ID do curso globalmente
+        window.courseId = {{ course.id }};
+        window.courseName = "{{ course.name }}";
+    </script>
     <style>
-        :root {
-            --bg-dark: #111827;
-            --bg-medium: #1F2937;
-            --bg-light: #374151;
-            --accent: #B91C1C;
-            --accent-hover: #991B1B;
-            --text-light: #ffffff;
-            --text-gray: #9CA3AF;
-            --border-color: #4B5563;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            line-height: 1.6;
-            padding: 2rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            color: var(--text-light);
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .card {
-            background-color: var(--bg-medium);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .button {
-            background-color: var(--accent);
-            color: var(--text-light);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .button:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .button + .button {
-            margin-left: 1rem;
-        }
-
-        #moduleList {
-            display: grid;
-            gap: 2rem;
-        }
-
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 50;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
+            background-color: rgba(0,0,0,0.5);
         }
-
         .modal-content {
-            background-color: var(--bg-medium);
-            margin: 5% auto;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            width: 90%;
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%;
             max-width: 600px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            position: relative;
+            animation: fadeIn 0.3s;
         }
-
+        #lessonModal .modal-content {
+            margin: 5% auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .close {
-            color: var(--text-gray);
-            position: absolute;
-            top: 1rem;
-            right: 1.5rem;
-            font-size: 2rem;
-            font-weight: bold;
             cursor: pointer;
-            transition: color 0.3s ease;
         }
-
-        .close:hover {
-            color: var(--text-light);
-        }
-
-        form label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-gray);
-            font-weight: 500;
-        }
-
-        form input[type="text"],
-        form input[type="url"],
-        form textarea,
-        form select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.5rem;
-            background-color: var(--bg-dark);
-            border: 2px solid var(--border-color);
-            border-radius: 0.5rem;
-            color: var(--text-light);
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        form input[type="text"]:focus,
-        form input[type="url"]:focus,
-        form textarea:focus,
-        form select:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        form input[type="file"] {
-            margin-bottom: 1.5rem;
-        }
-
-        #preview {
-            background-color: var(--bg-medium);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-top: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            .button {
-                width: 100%;
-                margin-bottom: 1rem;
-            }
-
-            .button + .button {
-                margin-left: 0;
-            }
-
-            .modal-content {
-                width: 95%;
-                padding: 1.5rem;
-            }
-        }
-
-        .module h3 {
-            margin-bottom: 1rem;
-        }
-
-        /* Estilos para módulos */
-        .module {
-            background-color: var(--bg-light);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .module:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .module h3 {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .module-title {
-            display: flex;
-            align-items: center;
-        }
-
-        .module-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .drag-handle {
-            cursor: move;
-            padding: 0.25rem 0.5rem;
-            color: var(--text-gray);
-            font-size: 1.2rem;
-        }
-
-        /* Estilos para os botões dos módulos */
-        .module button {
-            background-color: transparent;
-            color: var(--text-gray);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .module button:hover {
-            background-color: var(--accent);
-            color: var(--text-light);
-            border-color: var(--accent);
-        }
-
-        .module button[onclick*="addLesson"] {
-            background-color: var(--accent);
-            color: var(--text-light);
-            border-color: var(--accent);
-        }
-
-        .module button[onclick*="addLesson"]:hover {
-            background-color: var(--accent-hover);
-            border-color: var(--accent-hover);
-        }
-
-        /* Estilos para aulas */
-        .lesson {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1rem;
-            background-color: var(--bg-medium);
-            border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .lesson:hover {
-            transform: translateX(5px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .lesson-title {
-            display: flex;
-            align-items: center;
-            flex-grow: 1;
-        }
-
-        .lesson-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .lesson button {
-            background-color: transparent;
-            color: var(--text-gray);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .lesson button:hover {
-            background-color: var(--accent);
-            color: var(--text-light);
-            border-color: var(--accent);
-        }
-
-        /* Ícones para os botões */
-        .module button::before,
-        .lesson button::before {
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 900;
-            margin-right: 0.3rem;
-        }
-
-        .module button[onclick*="edit"]::before,
-        .lesson button[onclick*="edit"]::before {
-            content: '\f044'; /* Ícone de edição */
-        }
-
-        .module button[onclick*="delete"]::before,
-        .lesson button[onclick*="delete"]::before {
-            content: '\f1f8'; /* Ícone de lixeira */
-        }
-
-        .module button[onclick*="addLesson"]::before {
-            content: '\f067'; /* Ícone de adição */
-        }
-
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .module h3,
-            .lesson {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .module-buttons,
-            .lesson-buttons {
-                margin-top: 0.5rem;
-                align-self: flex-end;
-            }
-
-            .module button,
-            .lesson button {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.6rem;
-            }
-        }
-
-        /* Estilos gerais do formulário */
-        #moduleForm {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        /* Estilos para o input de arquivo */
-        .file-input-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        #moduleImage {
-            position: absolute;
-            left: -9999px;
-        }
-
-        .file-input-label {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #f0f0f0;
-            color: #333;
-            border: 2px dashed #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .file-input-label:hover {
-            background-color: #e0e0e0;
-            border-color: #999;
-        }
-
-        .file-input-text {
-            display: inline-block;
-            margin-left: 10px;
-        }
-
-        .file-input-icon::before {
-            content: "📁";
-            font-size: 1.2em;
-            vertical-align: middle;
-        }
-
-        #moduleImage:focus + .file-input-label,
-        #moduleImage:valid + .file-input-label {
-            border-color: #4CAF50;
-            background-color: #e8f5e9;
-        }
-
-        /* Estilos para a pré-visualização da imagem */
-        .image-preview {
-            margin-top: 10px;
-            max-width: 100%;
-            display: none;
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .image-preview p {
-            margin: 5px 0;
-            font-style: italic;
-            color: #666;
-        }
-        .navbar {
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-        .navbar-brand {
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .toggle-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.toggle-label {
-    margin-right: 10px;
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--bg-light);
-    transition: .4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: var(--text-light);
-    transition: .4s;
-}
-
-input:checked + .slider {
-    background-color: var(--accent);
-}
-
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-
-.slider.round {
-    border-radius: 34px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-/* Estilos para o input numérico (tempo em segundos) */
-.time-input {
-    -moz-appearance: textfield;
-    appearance: textfield;
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: var(--bg-dark);
-    border: 2px solid var(--border-color);
-    border-radius: 0.5rem;
-    color: var(--text-light);
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
-}
-
-.time-input::-webkit-inner-spin-button,
-.time-input::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.time-input:focus {
-    outline: none;
-    border-color: var(--accent);
-}
     </style>
 </head>
-<body>
-    <nav class="navbar">
-        <a href="/admin" class="navbar-brand"> < Voltar ao admin</a>
-    </nav>
+<body class="bg-gray-50 text-gray-800 font-sans">
+    <!-- Header/Navigation -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between">
+            <a href="/admin" class="flex items-center text-primary font-bold hover:text-red-700 transition-all">
+                <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
+                Voltar ao painel
+            </a>
+            <h1 class="text-xl font-bold text-gray-800">Edição de Curso</h1>
+            <div class="w-24"></div> <!-- Espaço para balanceamento -->
+        </div>
+    </header>
 
-    <div class="container">
-        <h1>Edit: <span id="courseName">Nome do Curso</span></h1>
-        
-        <div class="card">
-            <button id="addModuleBtn" class="button">Adicionar Módulo</button>
-            <button id="previewBtn" class="button">Pré-visualizar</button>
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Info do curso e botões de ação -->
+        <div class="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <span id="courseName">{{ course.name }}</span>
+                        </h2>
+                        <p class="text-gray-500 mt-1">Organize módulos e aulas para este curso</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button id="addModuleBtn" class="bg-primary hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center transition-all">
+                            <i data-lucide="folder-plus" class="h-5 w-5 mr-2"></i>
+                            Adicionar Módulo
+                        </button>
+                        <button id="addCoverBtn" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-md flex items-center transition-all">
+                            <i data-lucide="image-plus" class="h-5 w-5 mr-2"></i>
+                            Gerenciar Cover
+                        </button>
+                        <button id="previewBtn" class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center transition-all">
+                            <i data-lucide="eye" class="h-5 w-5 mr-2"></i>
+                            Pré-visualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="moduleList">
-            <!-- Módulos serão adicionados aqui dinamicamente -->
+        <!-- Input oculto para o cover -->
+        <input type="file" id="coverInput" style="display:none;" accept="image/*">
+
+        <!-- Lista de módulos -->
+        <div id="moduleList" class="space-y-4">
+            <!-- Módulos serão adicionados dinamicamente aqui -->
         </div>
+
+        <!-- Template para visualização de módulos -->
+        <template id="moduleTemplate">
+            <div class="module bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                <div class="module-header bg-white p-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <span class="drag-handle cursor-move p-1 mr-3 text-gray-400 hover:text-gray-600">
+                                <i data-lucide="grip-vertical" class="h-5 w-5"></i>
+                            </span>
+                            <h3 class="text-lg font-semibold text-gray-800"></h3>
+                        </div>
+                        <div class="module-buttons flex gap-2">
+                            <button class="add-lesson bg-primary hover:bg-red-700 text-white px-3 py-1 rounded flex items-center text-sm transition-all">
+                                <i data-lucide="plus" class="h-4 w-4 mr-1"></i> Aula
+                            </button>
+                            <button class="edit-module bg-gray-800 hover:bg-gray-700 text-white px-3 py-1 rounded flex items-center text-sm transition-all">
+                                <i data-lucide="edit-2" class="h-4 w-4 mr-1"></i> Editar
+                            </button>
+                            <button class="delete-module bg-red-100 text-red-900 hover:bg-red-200 px-3 py-1 rounded flex items-center text-sm transition-all">
+                                <i data-lucide="trash-2" class="h-4 w-4 mr-1"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="lesson-list p-4 space-y-2 bg-gray-50">
+                    <!-- Aulas serão adicionadas aqui -->
+                </div>
+            </div>
+        </template>
+
+        <!-- Template para visualização de aulas -->
+        <template id="lessonTemplate">
+            <div class="lesson bg-white p-3 rounded-md border border-gray-200 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+                <div class="flex items-center">
+                    <span class="drag-handle cursor-move p-1 mr-2 text-gray-400 hover:text-gray-600">
+                        <i data-lucide="grip-vertical" class="h-4 w-4"></i>
+                    </span>
+                    <span class="lesson-title font-medium text-gray-700"></span>
+                </div>
+                <div class="lesson-buttons flex gap-1">
+                    <button class="edit-lesson text-gray-800 hover:text-gray-700 p-1 rounded transition-all">
+                        <i data-lucide="edit-2" class="h-4 w-4"></i>
+                    </button>
+                    <button class="delete-lesson text-red-600 hover:text-red-700 p-1 rounded transition-all">
+                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                    </button>
+                </div>
+            </div>
+        </template>
 
         <!-- Modal para adicionar/editar módulo -->
-    <div id="moduleModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="moduleModalTitle">Adicionar Novo Módulo</h2>
-            <form id="moduleForm">
-                <input type="hidden" id="moduleId">
-                <div class="form-group">
-                    <label for="moduleName">Nome do Módulo:</label>
-                    <input type="text" id="moduleName" name="name" required>
+        <div id="moduleModal" class="modal">
+            <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="moduleModalTitle" class="text-xl font-bold text-gray-800">Adicionar Novo Módulo</h2>
+                    <button type="button" class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
                 </div>
-                <div class="form-group file-input-container">
-                    <label for="moduleImage">Imagem do Módulo:</label>
-                    <input type="file" id="moduleImage" name="image" accept="image/*">
-                    <label for="moduleImage" class="file-input-label">
-                        <span class="file-input-icon"></span>
-                        <span class="file-input-text">Escolha uma imagem</span>
-                    </label>
-                    <div id="moduleImagePreview" class="image-preview"></div>
-                    <label for="moduleImage">Recomendado 16:9(455x256)</label>
+                <form id="moduleForm" class="space-y-4">
+                    <input type="hidden" id="moduleId">
+                    <div class="form-group">
+                        <label for="moduleName" class="block text-sm font-medium text-gray-700 mb-1">Nome do Módulo:</label>
+                        <input type="text" id="moduleName" name="name" required 
+                               class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Imagem do Módulo:</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-primary transition-all">
+                            <input type="file" id="moduleImage" name="image" accept="image/*" class="hidden">
+                            <label for="moduleImage" class="cursor-pointer">
+                                <i data-lucide="image-plus" class="h-12 w-12 mx-auto text-gray-400 mb-2"></i>
+                                <p class="text-gray-600">Escolha uma imagem ou arraste aqui</p>
+                                <p class="text-xs text-gray-500 mt-1">Recomendado 16:9 (455x256)</p>
+                            </label>
+                            <div id="moduleImagePreview" class="mt-4" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all">
+                        Salvar Módulo
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal para adicionar/editar aula -->
+        <div id="lessonModal" class="modal">
+            <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="lessonModalTitle" class="text-xl font-bold text-gray-800">Adicionar Nova Aula</h2>
+                    <button type="button" class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
                 </div>
-                <button type="submit" class="button">Salvar Módulo</button>
-            </form>
+                <form id="lessonForm" class="space-y-4">
+                    <input type="hidden" id="lessonId">
+                    <input type="hidden" id="lessonModuleId">
+                    
+                    <div>
+                        <label for="lessonTitle" class="block text-sm font-medium text-gray-700 mb-1">Título:</label>
+                        <input type="text" id="lessonTitle" name="title" required 
+                               class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div>
+                        <label for="lessonDescription" class="block text-sm font-medium text-gray-700 mb-1">Descrição:</label>
+                        <textarea id="lessonDescription" name="description" required 
+                                  class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary h-32"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="lessonVideoUrl" class="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo:</label>
+                        <input type="url" id="lessonVideoUrl" name="video_url" required 
+                               class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    
+                    <div>
+                        <label for="lessonVideoType" class="block text-sm font-medium text-gray-700 mb-1">Plataforma de Vídeo:</label>
+                        <select id="lessonVideoType" name="video_type" 
+                                class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="youtube">YouTube</option>
+                        </select>
+                    </div>
+                    
+                    <div class="upload-section">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Anexar arquivo:</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-primary transition-all">
+                            <input type="file" id="lessonDocuments" name="documents" multiple class="hidden">
+                            <label for="lessonDocuments" class="cursor-pointer">
+                                <i data-lucide="file-plus" class="h-10 w-10 mx-auto text-gray-400 mb-2"></i>
+                                <p class="text-gray-600">Escolha arquivos para anexar</p>
+                            </label>
+                            <span id="lessonDocumentsName" class="mt-2 block text-sm text-gray-600">Nenhum arquivo selecionado</span>
+                        </div>
+                    </div>
+
+                    <div class="existing-files-section" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Arquivos anexados:</label>
+                        <div id="existingFilesList" class="mb-4 space-y-2">
+                            <!-- Arquivos serão adicionados aqui dinamicamente -->
+                        </div>
+                        
+                        <!-- Botão de upload simples -->
+                        <div class="flex items-center space-x-2">
+                            <input type="file" id="lessonDocuments" name="documents" multiple class="hidden">
+                            <button type="button" onclick="document.getElementById('lessonDocuments').click()" 
+                                    class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                                <i data-lucide="upload" class="h-4 w-4 mr-2"></i>
+                                Anexar arquivos
+                            </button>
+                            <span id="selectedFilesCount" class="text-sm text-gray-500"></span>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="hasButton" name="has_button" value="false">
+                    
+                    <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                        <label for="extraOptionsToggle" class="text-sm font-medium text-gray-700">Adicionar CTA (Call to Action):</label>
+                        <div class="relative inline-block w-12 h-6 select-none">
+                            <input type="checkbox" id="extraOptionsToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                            <label for="extraOptionsToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                        <style>
+                            .toggle-checkbox:checked {
+                                right: 0;
+                                border-color: #B91C1C;
+                            }
+                            .toggle-label {
+                                transition: background-color 0.2s ease;
+                            }
+                            .toggle-checkbox:checked + .toggle-label {
+                                background-color: #FECACA;
+                            }
+                        </style>
+                    </div>
+                    
+                    <div id="extraOptions" class="space-y-4 bg-gray-50 p-4 rounded-md" style="display: none;">
+                        <h3 class="text-sm font-semibold text-gray-700">Opções do Call to Action</h3>
+                        <div>
+                            <label for="buttonText" class="block text-sm font-medium text-gray-700 mb-1">Texto do botão:</label>
+                            <input type="text" id="buttonText" name="button_text" 
+                                   class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        
+                        <div>
+                            <label for="buttonLink" class="block text-sm font-medium text-gray-700 mb-1">Link do botão:</label>
+                            <input type="url" id="buttonLink" name="button_link" 
+                                   class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        
+                        <div>
+                            <label for="appearanceTime" class="block text-sm font-medium text-gray-700 mb-1">Delay do botão (em segundos):</label>
+                            <input type="number" id="appearanceTime" name="appearance_time" min="0" 
+                                   class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all mt-6">
+                        Salvar Aula
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Novo Modal para Gerenciar Cover -->
+        <div id="coverModal" class="modal">
+          <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md mx-auto">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold text-gray-800">Gerenciar Cover do Curso</h2>
+              <button type="button" class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                <i data-lucide="x" class="h-6 w-6"></i>
+              </button>
+            </div>
+            <p class="mb-4 text-sm text-gray-700">
+              O Cover é a imagem de apresentação do curso que irá acima dos módulos. Exemplo:
+            </p>
+            <div class="mb-4 text-center">
+              <img src="/static/fixed/example_cover.webp" alt="Exemplo Cover" class="mx-auto rounded-md shadow-sm" style="max-width:100%; height:auto;">
+              <p class="mt-2 text-xs text-gray-500">Recomendado: 1912x424 pixels</p>
+            </div>
+            <div class="mb-4">
+              <label for="coverModalInput" class="block text-sm font-medium text-gray-700 mb-2">Selecionar nova imagem:</label>
+              <div class="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-primary transition-all">
+                <input type="file" id="coverModalInput" name="cover" accept="image/*" class="hidden">
+                <label for="coverModalInput" class="cursor-pointer flex flex-col items-center">
+                  <i data-lucide="image-plus" class="h-10 w-10 text-gray-400 mb-2"></i>
+                  <span class="text-sm font-medium text-gray-700">Clique para selecionar uma imagem</span>
+                  <p class="text-xs text-gray-500 mt-1">ou arraste e solte aqui</p>
+                </label>
+              </div>
+            </div>
+            <div id="coverModalPreview" class="mb-6" style="display:none;"></div>
+            <div class="flex justify-end space-x-3">
+              <button id="deleteCoverBtn" type="button" class="px-5 py-2.5 font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-all flex items-center">
+                <i data-lucide="trash-2" class="h-4 w-4 mr-2"></i>
+                Apagar Cover
+              </button>
+              <button id="saveCoverBtn" type="button" class="px-5 py-2.5 font-medium rounded-md text-white bg-primary hover:bg-red-700 transition-all shadow-sm flex items-center">
+                <i data-lucide="save" class="h-4 w-4 mr-2"></i>
+                Salvar Cover
+              </button>
+            </div>
+          </div>
         </div>
     </div>
 
-    <!-- Modal para adicionar/editar aula -->
-    <div id="lessonModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="lessonModalTitle">Adicionar Nova Aula</h2>
-            <form id="lessonForm">
-                <input type="hidden" id="lessonId">
-                <input type="hidden" id="lessonModuleId">
-                <label for="lessonTitle">Título:</label>
-                <input type="text" id="lessonTitle" name="title" required>
-                
-                <label for="lessonDescription">Descrição:</label>
-                <textarea id="lessonDescription" name="description" required></textarea>
-                
-                <label for="lessonVideoUrl">URL do Vídeo:</label>
-                <input type="url" id="lessonVideoUrl" name="video_url" required>
-                
-                <label for="lessonVideoType">Plataforma de Vídeo:</label>
-                <select id="lessonVideoType" name="video_type">
-                    <option value="youtube">YouTube</option>
-                </select>
-                
-                <label for="lessonDocuments">Anexar arquivo:</label>
-                <input type="file" id="lessonDocuments" name="documents" multiple>
-                
-                <input type="hidden" id="hasButton" name="has_button" value="false">
-                <div class="toggle-container">
-                    <label for="extraOptionsToggle" class="toggle-label">Adicionar CTA:</label>
-                    <label class="switch">
-                        <input type="checkbox" id="extraOptionsToggle">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                
-                <div id="extraOptions" style="display: none;">
-                    <label for="buttonText">Texto do botão:</label>
-                    <input type="text" id="buttonText" name="button_text">
-                    
-                    <label for="buttonLink">Link do botão:</label>
-                    <input type="url" id="buttonLink" name="button_link">
-                    
-                    <label for="appearanceTime">Delay do botão (em segundos):</label>
-                    <input type="number" id="appearanceTime" name="appearance_time" min="0" class="time-input">
-                </div>
-                <br>
-                <button type="submit" class="button">Salvar Aula</button>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <!-- Inicialização dos ícones Lucide -->
     <script>
-        let courseId = {{ course.id }};
-        let courseData = {
-            id: courseId,
-            name: "{{ course.name }}",
-            modules: []
-        };
-
-        const moduleModal = document.getElementById("moduleModal");
-        const lessonModal = document.getElementById("lessonModal");
-        const addModuleBtn = document.getElementById("addModuleBtn");
-        const spans = document.getElementsByClassName("close");
-
-        addModuleBtn.onclick = function() {
-            openModuleModal();
-        }
-
-        for (let span of spans) {
-            span.onclick = function() {
-                moduleModal.style.display = "none";
-                lessonModal.style.display = "none";
-            }
-        }
-
-        window.onclick = function(event) {
-            if (event.target == moduleModal || event.target == lessonModal) {
-                moduleModal.style.display = "none";
-                lessonModal.style.display = "none";
-            }
-        }
-
-        function resetForm() {
-            const lessonForm = document.getElementById('lessonForm');
-            const extraOptionsToggle = document.getElementById('extraOptionsToggle');
-            const extraOptions = document.getElementById('extraOptions');
-            const hasButtonInput = document.getElementById('hasButton');
-
-            lessonForm.reset();
-            document.getElementById('lessonId').value = ''; // Limpa o ID da aula
-            document.getElementById('lessonVideoType').value = 'youtube';
-            extraOptionsToggle.checked = false;
-            extraOptions.style.display = 'none';
-            hasButtonInput.value = 'false';
-            document.getElementById('buttonText').value = '';
-            document.getElementById('buttonLink').value = '';
-            document.getElementById('appearanceTime').value = '';
-        }
-
-        function openModuleModal(moduleId = null) {
-            const form = document.getElementById('moduleForm');
-            const title = document.getElementById('moduleModalTitle');
-            
-            if (moduleId) {
-                const module = courseData.modules.find(m => m.id === moduleId);
-                title.textContent = 'Editar Módulo';
-                document.getElementById('moduleId').value = moduleId;
-                document.getElementById('moduleName').value = module.name;
-            } else {
-                title.textContent = 'Adicionar Novo Módulo';
-                form.reset();
-                document.getElementById('moduleId').value = '';
-            }
-
-            moduleModal.style.display = "block";
-        }
-
-        function openLessonModal(moduleId, lessonId = null) {
-            const form = document.getElementById('lessonForm');
-            const title = document.getElementById('lessonModalTitle');
-            const extraOptionsToggle = document.getElementById('extraOptionsToggle');
-            const extraOptions = document.getElementById('extraOptions');
-            const hasButtonInput = document.getElementById('hasButton');
-            
-            document.getElementById('lessonModuleId').value = moduleId;
-            document.getElementById('lessonVideoType').value = 'youtube'; // Definindo YouTube como valor padrão
-
-            if (lessonId) {
-                const module = courseData.modules.find(m => m.id === moduleId);
-                if (module) {
-                    const lesson = module.lessons.find(l => l.id === lessonId);
-                    if (lesson) {
-                        title.textContent = 'Editar Aula';
-                        document.getElementById('lessonId').value = lessonId;
-                        document.getElementById('lessonTitle').value = lesson.title || '';
-                        document.getElementById('lessonDescription').value = lesson.description || '';
-                        document.getElementById('lessonVideoUrl').value = lesson.video_url || '';
-                        document.getElementById('lessonVideoType').value = lesson.video_type || 'youtube';
-                        
-                        // Configurando o toggle de CTA e campos relacionados
-                        extraOptionsToggle.checked = lesson.has_button || false;
-                        hasButtonInput.value = (lesson.has_button || false).toString();
-                        extraOptions.style.display = lesson.has_button ? 'block' : 'none';
-                        
-                        if (lesson.has_button) {
-                            document.getElementById('buttonText').value = lesson.button_text || '';
-                            document.getElementById('buttonLink').value = lesson.button_link || '';
-                            document.getElementById('appearanceTime').value = lesson.button_delay || '';
-                        } else {
-                            document.getElementById('buttonText').value = '';
-                            document.getElementById('buttonLink').value = '';
-                            document.getElementById('appearanceTime').value = '';
-                        }
-                    } else {
-                        console.error('Aula não encontrada');
-                        return;
-                    }
-                } else {
-                    console.error('Módulo não encontrado');
-                    return;
-                }
-            } else {
-                title.textContent = 'Adicionar Nova Aula';
-                resetForm();
-                extraOptionsToggle.checked = false;
-                hasButtonInput.value = 'false';
-                extraOptions.style.display = 'none';
-            }
-
-            lessonModal.style.display = "block";
-        }
-
-        function fetchCourseData() {
-            fetch(`/admin/course/${courseId}/details`)
-                .then(response => response.json())
-                .then(data => {
-                    courseData = data;
-                    renderCourse();
-                });
-        }
-
-        function renderCourse() {
-            document.getElementById('courseName').textContent = courseData.name;
-            const moduleList = document.getElementById('moduleList');
-            moduleList.innerHTML = '';
-
-            courseData.modules.forEach((module) => {
-                const moduleElement = document.createElement('div');
-                moduleElement.className = 'module';
-                moduleElement.innerHTML = `
-                    <h3>
-                        <div class="module-title">
-                            <span class="drag-handle">☰</span>
-                            ${module.name}
-                        </div>
-                        <div class="module-buttons">
-                            <button onclick="editModule(${module.id})">Editar</button>
-                            <button onclick="deleteModule(${module.id})">Excluir</button>
-                            <button onclick="addLesson(${module.id})">Adicionar Aula</button>
-                        </div>
-                    </h3>
-                    <div class="lesson-list" id="lessonList-${module.id}"></div>
-                `;
-                moduleList.appendChild(moduleElement);
-
-                const lessonList = moduleElement.querySelector('.lesson-list');
-                module.lessons.forEach((lesson) => {
-                    const lessonElement = document.createElement('div');
-                    lessonElement.className = 'lesson';
-                    lessonElement.innerHTML = `
-                        <div class="lesson-title">
-                            <span class="drag-handle">☰</span>
-                            ${lesson.title}
-                        </div>
-                        <div class="lesson-buttons">
-                            <button onclick="editLesson(${module.id}, ${lesson.id})">Editar</button>
-                            <button onclick="deleteLesson(${module.id}, ${lesson.id})">Excluir</button>
-                        </div>
-                    `;
-                    lessonList.appendChild(lessonElement);
-                });
-
-                new Sortable(lessonList, {
-                    animation: 150,
-                    handle: '.drag-handle',
-                    onEnd: function(evt) {
-                        const moduleId = parseInt(evt.target.id.split('-')[1]);
-                        reorderLessons(moduleId);
-                    }
-                });
-            });
-
-            new Sortable(moduleList, {
-                animation: 150,
-                handle: '.drag-handle',
-                onEnd: function(evt) {
-                    reorderModules();
-                }
-            });
-        }
-
-        document.getElementById('moduleForm').onsubmit = function(e) {
-            e.preventDefault();
-            const form = new FormData(this);
-            const moduleId = document.getElementById('moduleId').value;
-
-            const url = moduleId ? `/admin/module/${moduleId}` : `/admin/course/${courseId}/module`;
-            const method = moduleId ? 'PUT' : 'POST';
-
-            fetch(url, {
-                method: method,
-                body: form,
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    moduleModal.style.display = "none";
-                    fetchCourseData();
-                    this.reset();
-                } else {
-                    alert('Erro ao salvar módulo');
-                }
-            });
-        }
-
-        document.getElementById('lessonForm').onsubmit = function(e) {
-            e.preventDefault();
-            const form = new FormData(this);
-            const lessonId = document.getElementById('lessonId').value;
-            const moduleId = document.getElementById('lessonModuleId').value;
-
-            const url = lessonId ? `/admin/lesson/${lessonId}` : `/admin/module/${moduleId}/lesson`;
-            const method = lessonId ? 'PUT' : 'POST';
-
-            fetch(url, {
-                method: method,
-                body: form,
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Resposta da rede não foi ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    lessonModal.style.display = "none";
-                    fetchCourseData();
-                    resetForm();
-                } else {
-                    alert('Erro ao salvar aula: ' + (data.message || 'Erro desconhecido'));
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao salvar aula: ' + error.message);
-            });
-        }
-
-        function editModule(moduleId) {
-            openModuleModal(moduleId);
-        }
-
-        function deleteModule(moduleId) {
-            if (confirm("Tem certeza que deseja excluir este módulo?")) {
-                fetch(`/admin/module/${moduleId}`, {
-                    method: 'DELETE',
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        fetchCourseData();
-                    } else {
-                        alert('Erro ao excluir módulo');
-                    }
-                });
-            }
-        }
-
-        function addLesson(moduleId) {
-            openLessonModal(moduleId);
-        }
-
-        function editLesson(moduleId, lessonId) {
-            if (typeof moduleId !== 'number' || typeof lessonId !== 'number') {
-                console.error('IDs inválidos:', moduleId, lessonId);
-                return;
-            }
-            openLessonModal(moduleId, lessonId);
-        }
-
-        function deleteLesson(moduleId, lessonId) {
-            if (confirm("Tem certeza que deseja excluir esta aula?")) {
-                fetch(`/admin/lesson/${lessonId}`, {
-                    method: 'DELETE',
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        fetchCourseData();
-                    } else {
-                        alert('Erro ao excluir aula');
-                    }
-                });
-            }
-        }
-
-        function reorderModules() {
-            const newOrder = Array.from(document.querySelectorAll('.module')).map(module => parseInt(module.querySelector('button').getAttribute('onclick').match(/\d+/)[0]));
-            fetch(`/admin/reorder_modules`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ new_order: newOrder }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    fetchCourseData();
-                } else {
-                    alert('Erro ao reordenar módulos');
-                }
-            });
-        }
-
-        function reorderLessons(moduleId) {
-            const newOrder = Array.from(document.querySelectorAll(`#lessonList-${moduleId} .lesson`)).map(lesson => parseInt(lesson.querySelector('button').getAttribute('onclick').match(/\d+/g)[1]));
-            fetch(`/admin/reorder_lessons`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ new_order: newOrder }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    fetchCourseData();
-                } else {
-                    alert('Erro ao reordenar aulas');
-                }
-            });
-        }
-
-        function previewCourse() {
-            window.open('/preview_course/' + courseId, '_blank');
-        }
-
-        document.getElementById('addModuleBtn').addEventListener('click', function() {
-            openModuleModal();
-        });
-        document.getElementById('previewBtn').addEventListener('click', previewCourse);
-
-
         document.addEventListener('DOMContentLoaded', function() {
-            const input = document.getElementById('moduleImage');
-            const preview = document.getElementById('moduleImagePreview');
-            const fileInputText = document.querySelector('.file-input-text');
+            lucide.createIcons();
+            console.log("Curso ID:", window.courseId);
+            console.log("Curso Nome:", window.courseName);
 
-            input.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            preview.innerHTML = `<img src="${e.target.result}" alt="Pré-visualização da imagem do módulo">`;
-                            preview.style.display = 'block';
-                        }
-                        reader.readAsDataURL(file);
-                        fileInputText.textContent = file.name;
-                    } else {
-                        preview.innerHTML = `<p>Arquivo selecionado: ${file.name}</p>`;
-                        preview.style.display = 'block';
-                        fileInputText.textContent = 'Arquivo não é uma imagem';
-                    }
-                } else {
-                    preview.style.display = 'none';
-                    fileInputText.textContent = 'Escolha uma imagem';
+            // Adicionar eventos para fechar os modais diretamente
+            document.querySelectorAll('.close').forEach(function(closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    document.getElementById('moduleModal').style.display = "none";
+                    document.getElementById('lessonModal').style.display = "none";
+                });
+            });
+            
+            // Evento global para fechar modais ao clicar fora deles
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = "none";
                 }
             });
 
-            const extraOptionsToggle = document.getElementById('extraOptionsToggle');
-            const extraOptions = document.getElementById('extraOptions');
-            const hasButtonInput = document.getElementById('hasButton');
-            const lessonForm = document.getElementById('lessonForm');
-
-            extraOptionsToggle.addEventListener('change', function() {
-                extraOptions.style.display = this.checked ? 'block' : 'none';
-                hasButtonInput.value = this.checked.toString();
-            });
-
-            lessonForm.addEventListener('submit', function(e) {
-                if (extraOptionsToggle.checked) {
-                    const buttonText = document.getElementById('buttonText').value;
-                    const buttonLink = document.getElementById('buttonLink').value;
-                    const appearanceTime = document.getElementById('appearanceTime').value;
-
-                    if (!buttonText || !buttonLink || !appearanceTime) {
-                        e.preventDefault();
-                        alert('Por favor, preencha todos os campos das opções extras.');
-                    }
-                }
-            });
+            const lessonDocumentsInput = document.getElementById('lessonDocuments');
+            const lessonDocumentsName = document.getElementById('lessonDocumentsName');
+            
+            if(lessonDocumentsInput && lessonDocumentsName) {
+                lessonDocumentsInput.addEventListener('change', function() {
+                    const fileNames = Array.from(this.files)
+                                           .map(file => file.name)
+                                           .join(', ');
+                    lessonDocumentsName.textContent = fileNames || 'Nenhum arquivo selecionado';
+                });
+            }
         });
-
-        function previewCourse() {
-            window.open('/preview_course/' + courseId, '_blank');
-        }
-
-        document.getElementById('previewBtn').addEventListener('click', previewCourse);
-
-        fetchCourseData();
     </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script src="/static/src/js/course_modification.js"></script>
 </body>
 </html>

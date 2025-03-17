@@ -5,737 +5,316 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Administração</title>
     <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <!-- Replace Font Awesome with Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                        dark: '#111827',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-         :root {
-            --bg-dark: #111827;
-            --bg-medium: #1F2937;
-            --bg-light: #374151;
-            --accent: #B91C1C;
-            --text-light: #ffffff;
-            --text-gray: #9CA3AF;
-            --border-color: #4B5563;
+        html {
+            scroll-behavior: smooth;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            line-height: 1.6;
         }
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            position: relative;
-            width: 250px;
-            background-color: var(--bg-medium);
-            padding: 2rem 1.5rem;
-            border-right: 1px solid var(--border-color);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-            width: 100%;
-            padding: 0 1.5rem;
-        }
-
-        .sidebar-footer button {
-            width: 100%;
-            text-align: left;
-            padding: 0.75rem 1rem;
-            background-color: transparent;
-            color: var(--text-gray);
-            border: none;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .sidebar-footer button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--text-light);
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 2rem;
-            overflow: auto;
-        }
-
-        .card {
-            background-color: var(--bg-medium);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text-light);
-        }
-
-        .button {
-            background-color: var(--accent);
-            color: var(--text-light);
-            border: none;
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            font-size: 0.9rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .button:hover {
-            background-color: #8B1515;
-        }
-
-        .icon {
-            margin-right: 0.5rem;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stats-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .stat-card {
-            background-color: var(--bg-medium);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stat-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-title {
-            font-size: 0.9rem;
-            color: var(--text-gray);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--text-light);
-        }
-
-        .chart-container {
-            background-color: var(--bg-medium);
-            border-radius: 0.5rem;
-            padding: 0 30px;
-            padding-top: 1rem;
-            padding-bottom: 55px;
-            height: 260px;
-            width: 100%;
-        }
-
-        #studentCourseChart {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-
-        .chart-placeholder {
-            width: 100%;
-            height: 200px;
-            background-color: var(--bg-dark);
-            border-radius: 0.25rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text-gray);
-        }
-
-        .course-list, .student-list {
-            list-style-type: none;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .course-item, .student-item {
-            background-color: var(--bg-light);
-            border-radius: 0.5rem;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .course-image, .student-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-
-        .course-content, .student-content {
-            padding: 1rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .course-title, .student-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .student-email {
-            font-size: 0.9rem;
-            color: var(--text-gray);
-            margin-bottom: 0.5rem;
-        }
-
-        .card-buttons {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: auto;
-            gap: 0.5rem;
-        }
-
-        .card-button {
-            background-color: var(--bg-dark);
-            color: var(--text-gray);
-            border: none;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .card-button:hover {
-            background-color: var(--bg-light);
-            color: var(--text-light);
-        }
-
-        .card-button i {
-            font-size: 1rem;
-            margin-right: 4px;
-        }
-
         .modal {
             display: none;
             position: fixed;
-            z-index: 1;
+            z-index: 50;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.6);
+            background-color: rgba(0,0,0,0.5);
         }
-
-        .modal-content {
-            background-color: var(--bg-medium);
-            margin: 10% auto;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .spinner {
+            animation: spin 1s linear infinite;
         }
-
-        .close {
-            color: var(--text-gray);
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s ease;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
-        .close:hover {
-            color: var(--text-light);
-        }
-
-        form label {
+        /* Improved styles for webhook URL */
+        #webhookUrl {
             display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-gray);
-        }
-
-        .search-input,
-        form input[type="text"],
-        form input[type="email"],
-        form input[type="password"],
-        form textarea,
-        form select {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            background-color: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
-            color: var(--text-light);
-        }
-
-        form input[type="file"] {
-            margin-bottom: 1rem;
-        }
-
-        /* Estilo para o container do input de arquivo */
-        .file-input-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            margin-bottom: 1rem;
-        }
-
-        /* Esconde o input de arquivo padrão */
-        #courseImage {
-            position: absolute;
-            left: -9999px;
-        }
-
-        /* Estilo para o label personalizado que substituirá visualmente o input */
-        .file-input-label {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #f0f0f0;
-            color: #333;
-            border: 2px dashed #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        /* Estilo para o hover do label */
-        .file-input-label:hover {
-            background-color: #e0e0e0;
-            border-color: #999;
-        }
-
-        /* Estilo para o texto dentro do label */
-        .file-input-text {
-            display: inline-block;
-            margin-left: 10px;
-        }
-
-        /* Ícone de upload (usando um emoji como placeholder) */
-        .file-input-icon::before {
-            content: "📁";
-            font-size: 1.2em;
-            vertical-align: middle;
-        }
-
-        /* Estilo para quando um arquivo é selecionado */
-        #courseImage:focus + .file-input-label,
-        #courseImage:valid + .file-input-label {
-            border-color: #4CAF50;
-            background-color: #e8f5e9;
-        }
-
-        .image-preview {
-            margin-top: 10px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-all;
             max-width: 100%;
-            display: none;
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .image-preview p {
-            margin: 5px 0;
-            font-style: italic;
-            color: #666;
-        }
-
-        .sidebar-nav {
-            list-style-type: none;
-            margin-top: 2rem;
-        }
-
-        .sidebar-nav li {
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-nav button {
-            width: 100%;
-            text-align: left;
-            padding: 0.75rem 1rem;
-            background-color: transparent;
-            color: var(--text-gray);
-            border: none;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .sidebar-nav button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--text-light);
-        }
-
-        .action-buttons {
-            margin-bottom: 2rem;
-        }
-
-        .action-buttons .button {
-            margin-right: 1rem;
-        }
-        .course-tags {
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-
-        .course-tag {
-            display: inline-block;
-            background-color: #111827;
-            color: #ffffff;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-
-        .action-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            gap: 1rem;
-        }
-
-        .action-left {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .action-center {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-        }
-
-        .action-right {
-            display: flex;
-            align-items: center;
-        }
-
-        .search-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            background-color: var(--bg-medium);
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
-            color: var(--text-light);
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.2);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 0.75rem;
-            top: 20px;
-            transform: translateY(-50%);
-            color: var(--text-gray);
-            font-size: 1rem;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-gray);
-        }
-
-        @media (max-width: 768px) {
-            .action-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .action-left, .action-center, .action-right {
-                width: 100%;
-            }
-
-            .search-wrapper {
-                max-width: none;
-            }
-        }
-
-        .course-item {
-            cursor: pointer;
-        }
-
-        .platform-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .platform-button {
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .platform-button:hover {
-            transform: scale(1.1);
-        }
-
-        .platform-button.active {
-            filter: grayscale(100%);
-            transform: scale(0.9);
-        }
-
-        .webhook-link {
-            background-color: var(--bg-dark);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-
-        .webhook-link pre {
+            padding: 10px 12px;
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #374151;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            cursor: default;
             margin: 0;
             white-space: pre-wrap;
-            word-wrap: break-word;
+            max-height: 100px;
+            overflow-y: auto;
+            position: relative;
         }
-
-        .webhook-link code {
-            display: block;
-            padding: 10px;
-            cursor: pointer;
+        
+        #webhookUrl::before {
+            content: ""; 
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            pointer-events: none;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
-        .how-to-configure {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .how-to-configure i {
-            margin-right: 5px;
-            color: #3365d1;
-        }
-
-        .how-to-configure a {
-            color: #3365d1;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .how-to-configure a:hover {
-            color: var(--accent);
-            text-decoration: underline;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
+        
+        .webhook-link {
             margin-top: 1rem;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            overflow: hidden;
         }
-
-        .pagination button {
-            background-color: var(--bg-light);
-            color: var(--text-gray);
-            border: none;
-            padding: 0.5rem 0.75rem;
-            margin: 0 0.25rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background-color 0.3s ease, color 0.3s ease;
+        
+        .webhook-header {
+            display: flex;
+            align-items: center;
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
         }
-
-        .pagination button:hover {
-            background-color: var(--bg-medium);
-            color: var(--text-light);
+        
+        .platform-button.active {
+            border: 2px solid #B91C1C;
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(185, 28, 28, 0.1);
         }
-
-        .pagination button.active {
-            background-color: var(--accent);
-            color: var(--text-light);
+        
+        .copy-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(17, 24, 39, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        
+        .copy-feedback.show {
+            opacity: 1;
         }
     </style>
 </head>
-<body>
-    <div class="container">
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <h1 class="card-title">Admin Dashboard</h1>
-            <nav>
-                <ul class="sidebar-nav">
+        <aside class="shadow-lg w-64 flex-shrink-0 flex flex-col border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-primary flex items-center">
+                    <i data-lucide="layout-dashboard" class="h-6 w-6 mr-3"></i>
+                    MembriumWL
+                </h1>
+            </div>
+            <nav class="flex-grow p-6">
+                <p class="text-xs font-medium text-gray-400 mb-6 uppercase tracking-wider">Gerenciamento</p>
+                <ul class="space-y-4">
                     <li>
-                        <button onclick="showCourses()">
-                            <i class="fas fa-book icon"></i> Cursos
+                        <button class="w-full flex items-center px-5 py-3 bg-primary text-white rounded-md transition-all">
+                            <i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Cursos
                         </button>
                     </li>
                     <li>
-                        <button onclick="showStudents()">
-                            <i class="fas fa-users icon"></i> Alunos
+                        <button onclick="showStudents()" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="users" class="h-5 w-5 mr-3"></i> Alunos
                         </button>
                     </li>
                     <li>
-                        <button onclick="importStudents()">
-                            <i class="fas fa-file-import icon"></i> Importar alunos
+                        <button onclick="window.location.href='/admin/showcase'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="store" class="h-5 w-5 mr-3"></i> Vitrine
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/promote'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="megaphone" class="h-5 w-5 mr-3"></i> Promoções
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/faq'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="help-circle" class="h-5 w-5 mr-3"></i> FAQ
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/file-manager'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="file" class="h-5 w-5 mr-3"></i> Arquivos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/settings'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configurações
                         </button>
                     </li>
                 </ul>
             </nav>
-            <div class="sidebar-footer">
-                <button id="reportBtn">
-                    <i class="fas fa-flag icon"></i> Reportar
+            <div class="p-6 border-t border-gray-200 space-y-4">
+                <button onclick="window.open('https://help.membriumwl.com/', '_blank')" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="life-buoy" class="h-5 w-5 mr-3"></i> Ajuda
                 </button>
-                <button onclick="window.open('https://docs.membriumwl.com/', '_blank')">
-                    <i class="fas fa-file-alt icon"></i> Documentação
-                </button>
-                <button onclick="window.location.href='/logout'">
-                    <i class="fas fa-sign-out-alt icon"></i> Sair
+                <button onclick="window.location.href='/logout'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="log-out" class="h-5 w-5 mr-3"></i> Sair
                 </button>
             </div>
         </aside>
         
         <!-- Main content -->
-        <main class="main-content">
-            <div class="dashboard-grid">
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="stat-info">
-                            <span class="stat-title">Total de Cursos</span>
-                            <span class="stat-value" id="totalCourses">0</span>
+        <main class="flex-grow p-6 overflow-y-auto">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Visão Geral</h2>
+                    <p class="text-gray-500">Bem-vindo ao seu painel administrativo.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Total de Cursos</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1" id="totalCourses">0</h3>
                         </div>
-                        <i class="fas fa-book fa-2x" style="color: var(--accent);"></i>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-info">
-                            <span class="stat-title">Total de Alunos</span>
-                            <span class="stat-value" id="totalStudents">0</span>
+                        <div class="bg-red-50 p-3 rounded-full">
+                            <i data-lucide="book-open" class="h-6 w-6 text-primary"></i>
                         </div>
-                        <i class="fas fa-users fa-2x" style="color: var(--accent);"></i>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Total de Alunos</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1" id="totalStudents">0</h3>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-full">
+                            <i data-lucide="users" class="h-6 w-6 text-primary"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Total de Aulas</p>
+                            <h3 id="totalLessons" class="text-2xl font-bold text-gray-800 mt-1">0</h3>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-full">
+                            <i data-lucide="presentation" class="h-6 w-6 text-primary"></i>
+                        </div>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <h2 class="card-title">Estatísticas</h2>
-                    <canvas id="studentCourseChart"></canvas>
-                </div>
-            </div>
-
-            <div class="action-container">
-                <div class="action-left">
-                    <button class="button" id="newCourseBtn">
-                        <i class="fas fa-plus icon"></i> Criar Novo Curso
-                    </button>
-                    <button class="button" id="newStudentBtn">
-                        <i class="fas fa-user-plus icon"></i> Adicionar Novo Aluno
-                    </button>
-                </div>
-                <div id="studentSearchContainer" class="action-center" style="display: none;">
-                    <div class="search-wrapper">
-                        <input type="text" id="studentSearch" placeholder="Buscar alunos..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6 lg:col-span-2">
+                        <h3 class="chart-title">Estatísticas de Alunos por Curso</h3>
+                        <div class="chart-container h-64">
+                            <div class="chart-wrapper">
+                                <canvas id="studentCourseChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="chart-title">Ações Rápidas</h3>
+                        <div class="space-y-3">
+                            <button id="newCourseBtn" class="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all flex items-center justify-center">
+                                <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Criar Novo Curso
+                            </button>
+                            <button onclick="showStudents()" class="w-full bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-all flex items-center justify-center">
+                                <i data-lucide="users" class="h-4 w-4 mr-2"></i> Gerenciar Alunos
+                            </button>
+                            <button onclick="importStudents()" class="w-full border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-all flex items-center justify-center">
+                                <i data-lucide="upload" class="h-4 w-4 mr-2"></i> Importar Alunos
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div id="paginationContainer" class="action-right" style="display: none;">
-                    <div id="pagination" class="pagination"></div>
+
+                <div class="flex flex-wrap justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Gerenciamento de Conteúdo</h2>
+                    </div>
                 </div>
-            </div>
 
-            <div class="card" id="courseListCard">
-                <h2 class="card-title">Cursos</h2>
-                <ul class="course-list" id="courseList">
-                    <!-- Course cards will be populated here -->
-                </ul>
-            </div>
-
-            <div class="card" id="studentListCard" style="display: none;">
-                <h2 class="card-title">Alunos</h2>
-                <ul class="student-list" id="studentList">
-                    <!-- Student cards will be populated here -->
-                </ul>
+                <div class="bg-white rounded-lg shadow" id="courseListCard">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="font-semibold text-lg text-gray-700">Cursos</h3>
+                    </div>
+                    <ul class="course-list p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="courseList">
+                        <!-- Course cards will be populated here -->
+                    </ul>
+                </div>
             </div>
         </main>
     </div>
 
     <!-- New Course Modal -->
     <div id="newCourseModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 class="card-title">Criar Novo Curso</h2>
-            <form id="newCourseForm">
-                <label for="courseName">Nome:</label>
-                <input type="text" id="courseName" name="name" required>
-                
-                <label for="courseDescription">Descrição:</label>
-                <textarea id="courseDescription" name="description" required></textarea>
-                
-                <div class="file-input-container">
-                    <input type="file" id="courseImage" name="image" accept="image/*" required>
-                    <label for="courseImage" class="file-input-label">
-                        <span class="file-input-icon"></span>
-                        <span class="file-input-text">Escolha uma imagem</span>
-                    </label>
-                    <div id="imagePreview" class="image-preview"></div>
-                    <label for="courseImage">Recomendado 16:9(455x256)</label>
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md mx-auto mt-24 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Criar Novo Curso</h2>
+                <button class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+            <form id="newCourseForm" class="space-y-4">
+                <div>
+                    <label for="courseName" class="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
+                    <input type="text" id="courseName" name="name" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
                 
-                <button type="submit" class="button" id="createCourseBtn">
+                <div>
+                    <label for="courseDescription" class="block text-sm font-medium text-gray-700 mb-1">Descrição:</label>
+                    <textarea id="courseDescription" name="description" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary h-32"></textarea>
+                </div>
+                
+                <div class="file-input-container">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Imagem do curso:</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-primary transition-all">
+                        <input type="file" id="courseImage" name="image" accept="image/*" required class="hidden">
+                        <label for="courseImage" class="cursor-pointer">
+                            <i data-lucide="image-plus" class="h-12 w-12 mx-auto text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">Escolha uma imagem ou arraste aqui</p>
+                            <p class="text-xs text-gray-500 mt-1">Recomendado 16:9 (455x256)</p>
+                        </label>
+                        <div id="imagePreview" class="image-preview mt-4"></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all" id="createCourseBtn">
                     <span class="button-text">Criar Curso</span>
-                    <span class="spinner" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i>
+                    <span class="spinner hidden">
+                        <i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>
                     </span>
                 </button>
             </form>
@@ -744,849 +323,102 @@
 
     <!-- Edit Course Modal -->
     <div id="editCourseModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 class="card-title">Editar Curso</h2>
-            <form id="editCourseForm">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md mx-auto mt-24 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Editar Curso</h2>
+                <button class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+            <form id="editCourseForm" class="space-y-4">
                 <input type="hidden" id="editCourseId" name="id">
                 
-                <label for="editCourseName">Nome:</label>
-                <input type="text" id="editCourseName" name="name" required>
-                
-                <label for="editCourseDescription">Descrição:</label>
-                <textarea id="editCourseDescription" name="description" required></textarea>
-                
-                <div class="file-input-container">
-                    <input type="file" id="editCourseImage" name="image" accept="image/*">
-                    <label for="editCourseImage" class="file-input-label">
-                        <span class="file-input-icon"></span>
-                        <span class="file-input-text">Escolha uma nova imagem (opcional)</span>
-                    </label>
-                    <div id="editImagePreview" class="image-preview"></div>
-                    <label for="editCourseImage">Recomendado 16:9(455x256)</label>
+                <div>
+                    <label for="editCourseName" class="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
+                    <input type="text" id="editCourseName" name="name" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
                 
-                <button type="submit" class="button" id="updateCourseBtn">
+                <div>
+                    <label for="editCourseDescription" class="block text-sm font-medium text-gray-700 mb-1">Descrição:</label>
+                    <textarea id="editCourseDescription" name="description" required class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary h-32"></textarea>
+                </div>
+                
+                <div class="file-input-container">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Imagem do curso (opcional):</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-primary transition-all">
+                        <input type="file" id="editCourseImage" name="image" accept="image/*" class="hidden">
+                        <label for="editCourseImage" class="cursor-pointer">
+                            <i data-lucide="image-plus" class="h-12 w-12 mx-auto text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">Escolha uma nova imagem (opcional)</p>
+                            <p class="text-xs text-gray-500 mt-1">Recomendado 16:9 (455x256)</p>
+                        </label>
+                        <div id="editImagePreview" class="image-preview mt-4"></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all" id="updateCourseBtn">
                     <span class="button-text">Atualizar Curso</span>
-                    <span class="spinner" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i>
+                    <span class="spinner hidden">
+                        <i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>
                     </span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- New Student Modal -->
-    <div id="newStudentModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 class="card-title">Adicionar Novo Aluno</h2>
-            <form id="newStudentForm">
-                <label for="studentEmail">Email:</label>
-                <input type="email" id="studentEmail" name="email" required>
-                
-                <label for="studentPassword">Senha:</label>
-                <input type="password" id="studentPassword" name="password" required>
-                
-                <label for="studentName">Nome:</label>
-                <input type="text" id="studentName" name="name" required>
-
-                <label for="studentCourses">Cursos:</label>
-                <select id="studentCourses" name="courses" required>
-                    <!-- Opções de cursos serão adicionadas dinamicamente -->
-                </select>
-                
-                <button type="submit" class="button">Adicionar Aluno</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Student Modal -->
-    <div id="editStudentModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 class="card-title">Editar Aluno</h2>
-            <form id="editStudentForm">
-                <input type="hidden" id="editStudentId" name="id">
-                
-                <label for="editAction">Ação:</label>
-                <select id="editAction" name="action" required>
-                    <option value="update">Atualizar Informações</option>
-                    <option value="include">Incluir em Curso</option>
-                    <option value="remove">Remover do Curso</option>
-                </select>
-    
-                <div id="updateFields">
-                    <label for="editStudentEmail">Email:</label>
-                    <input type="email" id="editStudentEmail" name="email" required>
-                    
-                    <label for="editStudentPassword">Nova Senha (deixe em branco para manter a atual):</label>
-                    <input type="password" id="editStudentPassword" name="password">
-                    
-                    <label for="editStudentName">Nome:</label>
-                    <input type="text" id="editStudentName" name="name" required>
+    <!-- Webhook Modal -->
+    <div id="webhookModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md mx-auto mt-24 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Webhook</h2>
+                <button class="close text-gray-500 hover:text-gray-800 cursor-pointer">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+            <div class="mb-4 text-center">
+                <div class="how-to-configure inline-flex items-center text-primary hover:text-red-700 transition-all">
+                    <i data-lucide="help-circle" class="h-4 w-4 mr-2"></i>
+                    <a href="https://docs.membriumwl.com/" target="_blank" rel="noopener noreferrer" class="underline">Como configurar</a>
                 </div>
-    
-                <div id="courseFields">
-                    <label for="editStudentCourses">Curso:</label>
-                    <select id="editStudentCourses" name="course" required>
-                        <!-- Opções de cursos serão adicionadas dinamicamente -->
-                    </select>
+            </div>
+            <p class="text-center text-sm font-medium text-gray-700 mb-4">Escolha a plataforma</p>
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <img src="/static/fixed/hotmart.png" alt="Hotmart" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="hotmart">
+                <img src="/static/fixed/kiwify.png" alt="Kiwify" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="kiwify">
+                <img src="/static/fixed/perfectpay.png" alt="Perfect Pay" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="perfectpay">
+                <img src="/static/fixed/kirvano.png" alt="Kirvano" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="kirvano">
+                <img src="/static/fixed/monetizze.png" alt="Monetizze" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="monetizze">
+                <img src="/static/fixed/lastlink.png" alt="LastLink" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="lastlink">
+                <img src="/static/fixed/active.webp" alt="ActiveCampaign" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="activecampaign">
+                <img src="/static/fixed/n8n.png" alt="n8n" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="manual">
+                <img src="/static/fixed/payt.png" alt="Payt" class="platform-button bg-white border border-gray-200 rounded-lg p-3 hover:shadow-lg cursor-pointer transition-all" data-platform="payt">
+            </div>
+            <div id="webhookLink" class="webhook-link bg-gray-100 rounded-md hidden">
+                <div class="webhook-header">
+                    <i data-lucide="link" class="h-4 w-4 mr-2 text-gray-500"></i>
+                    <span class="text-sm font-medium text-gray-700">URL do Webhook</span>
                 </div>
-                
-                <button type="submit" class="button">Salvar Alterações</button>
-            </form>
-        </div>
-    </div>
-
-        <!-- Webhook Modal -->
-        <div id="webhookModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 class="card-title">Webhook</h2>
-                <div class="how-to-configure">
-                    <i class="fas fa-info-circle"></i>
-                    <a href="https://docs.membriumwl.com/" target="_blank" rel="noopener noreferrer">Como configurar</a>
+                <div class="p-3 relative">
+                    <pre id="webhookUrl" class="text-sm"></pre>
+                    <div id="copyFeedback" class="copy-feedback">Copiado!</div>
                 </div>
-                <p>Escolha a plataforma</p>
-                <div class="platform-buttons">
-                    <img src="/static/fixed/hotmart.png" alt="Hotmart" class="platform-button" data-platform="hotmart">
-                    <img src="/static/fixed/kiwify.png" alt="Kiwify" class="platform-button" data-platform="kiwify">
-                    <img src="/static/fixed/perfectpay.png" alt="Perfect Pay" class="platform-button" data-platform="perfectpay">
-                    <img src="/static/fixed/kirvano.png" alt="Kirvano" class="platform-button" data-platform="kirvano">
-                    <img src="/static/fixed/monetizze.png" alt="Monetizze" class="platform-button" data-platform="monetizze">
-                    <img src="/static/fixed/lastlink.png" alt="LastLink" class="platform-button" data-platform="lastlink">
-                    <img src="/static/fixed/active.webp" alt="ActiveCampaign" class="platform-button" data-platform="activecampaign">
-                    <img src="/static/fixed/n8n.png" alt="n8n" class="platform-button" data-platform="manual">
-                    <img src="/static/fixed/payt.png" alt="Payt" class="platform-button" data-platform="payt">
-                    <img src="/static/fixed/zapier.png" alt="zapier" class="platform-button" data-platform="manual">
-                </div>
-                <div id="webhookLink" class="webhook-link" style="display: none;">
-                    <pre><code id="webhookUrl"></code></pre>
+                <div class="px-3 pb-3">
+                    <button id="copyWebhookBtn" class="w-full mt-2 bg-primary text-white py-2 rounded-md hover:bg-red-700 transition-all text-sm flex items-center justify-center">
+                        <i data-lucide="copy" class="h-4 w-4 mr-2"></i> Copiar URL
+                    </button>
                 </div>
             </div>
         </div>
-    
-        <!-- Report Modal -->
-        <div id="reportModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 class="card-title">Reportar</h2>
-                <form id="reportForm">
-                    <div>
-                        <label>
-                            <input type="radio" name="reportType" value="Bugs / Erros" required>
-                            Bugs / Erros
-                        </label>
-                    </div>
-                    <div>
-                        <label>
-                            <input type="radio" name="reportType" value="Melhorias">
-                            Melhorias
-                        </label>
-                    </div>
-                    <div>
-                        <label>
-                            <input type="radio" name="reportType" value="Sugestões">
-                            Sugestões
-                        </label>
-                    </div>
-                    <textarea id="reportDetails" rows="5" placeholder="Descreva os detalhes aqui..." required></textarea>
-                    <button type="submit" class="button">Enviar Relatório</button>
-                </form>
-            </div>
-        </div>
+    </div>
 
+    <!-- Initialize Lucide Icons -->
     <script>
-        // Fetch courses
-        function fetchCourses() {
-            fetch('/admin/courses')
-                .then(response => response.json())
-                .then(data => {
-                    populateCourseList(data);
-                    updateTotals(data, null);
-                });
-        }
-
-        // Fetch courses for multi-select
-        function fetchCoursesForSelect() {
-            fetch('/admin/courses')
-                .then(response => response.json())
-                .then(data => {
-                    const selectElement = document.getElementById('studentCourses');
-                    selectElement.innerHTML = '';
-                    data.forEach(course => {
-                        const option = document.createElement('option');
-                        option.value = course.id;
-                        option.textContent = course.name;
-                        selectElement.appendChild(option);
-                    });
-                });
-        }
-
-        // Populate course list
-        function populateCourseList(courses) {
-            const courseList = document.getElementById('courseList');
-            courseList.innerHTML = '';
-            courses.forEach(course => {
-                const li = document.createElement('li');
-                li.className = 'course-item';
-                li.innerHTML = `
-                    <img src="${course.image_url || '/static/default-course-image.jpg'}" alt="${course.name}" class="course-image">
-                    <div class="course-content">
-                        <h3 class="course-title">${course.name}</h3>
-                        <div class="card-buttons">
-                            <button class="card-button webhook" onclick="openWebhookModal(${course.id})" title="Webhook">
-                                <i class="fas fa-link"></i> Webhook
-                            </button>
-                            <button class="card-button edit" onclick="openEditCourseModal(${course.id})" title="Editar curso">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="card-button delete" onclick="deleteCourse(${course.id})" title="Excluir curso">
-                                <i class="fas fa-trash-alt"></i> Excluir
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Adiciona o evento de clique ao card
-                li.addEventListener('click', function(event) {
-                    // Verifica se o clique não foi em um dos botões
-                    if (!event.target.closest('.card-button')) {
-                        window.location.href = `/admin/course/${course.id}/modification`;
-                    }
-                });
-                
-                courseList.appendChild(li);
-            });
-        }
-
-        function openEditCourseModal(id) {
-            fetch(`/admin/course/${id}`, {
-                method: 'GET'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao obter informações do curso');
-                }
-                return response.json();
-            })
-            .then(course => {
-                document.getElementById('editCourseId').value = course.id;
-                document.getElementById('editCourseName').value = course.name;
-                document.getElementById('editCourseDescription').value = course.description;
-                
-                // Atualizar a pré-visualização da imagem, se houver
-                const imagePreview = document.getElementById('editImagePreview');
-                if (course.image_url) {
-                    imagePreview.innerHTML = `<img src="${course.image_url}" alt="Pré-visualização da imagem">`;
-                    imagePreview.style.display = 'block';
-                } else {
-                    imagePreview.innerHTML = '';
-                    imagePreview.style.display = 'none';
-                }
-                
-                // Abrir o modal
-                document.getElementById('editCourseModal').style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao carregar informações do curso');
-            });
-        }
-
-        document.getElementById('editCourseForm').onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const courseId = document.getElementById('editCourseId').value;
-
-            const submitButton = document.getElementById('updateCourseBtn');
-            const buttonText = submitButton.querySelector('.button-text');
-            const spinner = submitButton.querySelector('.spinner');
-
-            submitButton.disabled = true;
-            buttonText.style.display = 'none';
-            spinner.style.display = 'inline-block';
-
-            fetch(`/admin/course/${courseId}`, {
-                method: 'PUT',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('editCourseModal').style.display = 'none';
-                    fetchCourses();
-                } else {
-                    alert('Erro ao atualizar o curso');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao atualizar o curso');
-            })
-            .finally(() => {
-                submitButton.disabled = false;
-                buttonText.style.display = 'inline-block';
-                spinner.style.display = 'none';
-            });
-        };
-
-        // Delete course
-        function deleteCourse(id) {
-            if (confirm('Tem certeza que deseja excluir este curso?')) {
-                fetch(`/admin/course/${id}`, { method: 'DELETE' })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            fetchCourses();
-                        } else {
-                            alert('Erro ao excluir o curso');
-                        }
-                    });
-            }
-        }
-
-        // Edit course
-        function editCourse(id) {
-            window.location.href = `/admin/course/${id}/modification`;
-        }
-
-        // Update totals
-        function updateTotals(courses, students) {
-            if (courses) {
-                document.getElementById('totalCourses').textContent = courses.length;
-            }
-            if (students) {
-                document.getElementById('totalStudents').textContent = students;
-            }
-        }
-
-        let allStudents = [];
-
-        // Show courses
-        function showCourses() {
-            document.getElementById('courseListCard').style.display = 'block';
-            document.getElementById('studentListCard').style.display = 'none';
-            document.getElementById('studentSearchContainer').style.display = 'none';
-            document.getElementById('paginationContainer').style.display = 'none';
-        }
-
-        // Show students
-        function showStudents() {
-            document.getElementById('courseListCard').style.display = 'none';
-            document.getElementById('studentListCard').style.display = 'block';
-            document.getElementById('studentSearchContainer').style.display = 'flex';
-            document.getElementById('paginationContainer').style.display = 'flex';
-            fetchStudents();
-        }
-
-        let currentPage = 1;
-        let totalPages = 1;
-        let currentSearch = '';
-
-        function fetchTotalStudents() {
-            fetch('/admin/total-students')
-                .then(response => response.json())
-                .then(data => {
-                    updateTotals(null, data.total);
-                });
-        }
-
-        // Fetch students
-        function fetchStudents(page = 1, search = '') {
-            currentPage = page;
-            currentSearch = search;
-            const url = `/admin/students?page=${page}&search=${encodeURIComponent(search)}`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    allStudents = data.students;
-                    totalPages = data.pages;
-                    populateStudentList(allStudents);
-                    updatePagination();
-                });
-        }
-
-        function updatePagination() {
-            const paginationElement = document.getElementById('pagination');
-            let paginationHTML = '';
-            
-            if (totalPages > 1) {
-                paginationHTML += `<button onclick="fetchStudents(1, currentSearch)" ${currentPage === 1 ? 'disabled' : ''}>First</button>`;
-                paginationHTML += `<button onclick="fetchStudents(${currentPage - 1}, currentSearch)" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
-                
-                for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-                    paginationHTML += `<button onclick="fetchStudents(${i}, currentSearch)" ${i === currentPage ? 'class="active"' : ''}>${i}</button>`;
-                }
-                
-                paginationHTML += `<button onclick="fetchStudents(${currentPage + 1}, currentSearch)" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
-                paginationHTML += `<button onclick="fetchStudents(${totalPages}, currentSearch)" ${currentPage === totalPages ? 'disabled' : ''}>Last</button>`;
-            }
-            
-            paginationElement.innerHTML = paginationHTML;
-        }
-
-        // Populate student list
-        function populateStudentList(students) {
-            const studentList = document.getElementById('studentList');
-            studentList.innerHTML = '';
-            students.forEach(student => {
-                const li = document.createElement('li');
-                li.className = 'student-item';
-                
-                const courseTags = student.courses.map(course => 
-                    `<span class="course-tag">${course.name}</span>`
-                ).join('');
-                
-                li.innerHTML = `
-                    <img src="https://cdn-icons-png.flaticon.com/512/11820/11820206.png" alt="${student.name}" class="student-image">
-                    <div class="student-content">
-                        <h3 class="student-name">${student.name}</h3>
-                        <p class="student-email">${student.email}</p>
-                        <div class="course-tags">${courseTags}</div>
-                        <div class="card-buttons">
-                            <button class="card-button edit" onclick="editStudent(${student.id})" title="Editar aluno">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button class="card-button delete" onclick="deleteStudent(${student.id})" title="Excluir aluno">
-                                <i class="fas fa-trash-alt"></i> Excluir
-                            </button>
-                        </div>
-                    </div>
-                `;
-                studentList.appendChild(li);
-            });
-        }
-
-        function filterStudents(searchTerm) {
-            fetchStudents(1, searchTerm);
-        }
-
-        // Adicionar event listener para o campo de busca
-        document.getElementById('studentSearch').addEventListener('input', function(e) {
-            filterStudents(e.target.value);
-        });
-
-        // Edit student
-        function editStudent(id) {
-            fetch(`/admin/student/${id}`)
-                .then(response => response.json())
-                .then(student => {
-                    document.getElementById('editStudentId').value = student.id;
-                    document.getElementById('editStudentEmail').value = student.email;
-                    document.getElementById('editStudentName').value = student.name;
-                    document.getElementById('editStudentPassword').value = '';
-                    
-                    fetchAllCourses().then(() => {
-                        const courseSelect = document.getElementById('editStudentCourses');
-                        courseSelect.value = student.courses[0] || '';  // Assume que o aluno está em apenas um curso
-                    });
-                    
-                    document.getElementById('editStudentModal').style.display = 'block';
-                });
-        }
-
-        function fetchAllCourses() {
-            return fetch('/admin/all-courses')
-                .then(response => response.json())
-                .then(courses => {
-                    const courseSelect = document.getElementById('editStudentCourses');
-                    courseSelect.innerHTML = '<option value="">Selecione um curso</option>';
-                    courses.forEach(course => {
-                        const option = document.createElement('option');
-                        option.value = course.id;
-                        option.textContent = course.name;
-                        courseSelect.appendChild(option);
-                    });
-                });
-        }
-
-        document.getElementById('editAction').addEventListener('change', function() {
-            const updateFields = document.getElementById('updateFields');
-            if (this.value === 'update') {
-                updateFields.style.display = 'block';
-            } else {
-                updateFields.style.display = 'none';
-            }
-        });
-
-        // Delete student
-        function deleteStudent(id) {
-            if (confirm('Tem certeza que deseja excluir este aluno?')) {
-                fetch(`/admin/student/${id}`, { method: 'DELETE' })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            fetchStudents();
-                        } else {
-                            alert('Erro ao excluir o aluno');
-                        }
-                    });
-            }
-        }
-
-        // Modal functionality
-        const newCourseModal = document.getElementById('newCourseModal');
-        const newStudentModal = document.getElementById('newStudentModal');
-        const editStudentModal = document.getElementById('editStudentModal');
-        const newCourseBtn = document.getElementById('newCourseBtn');
-        const newStudentBtn = document.getElementById('newStudentBtn');
-        const closeBtns = document.getElementsByClassName('close');
-
-        newCourseBtn.onclick = () => newCourseModal.style.display = 'block';
-        newStudentBtn.onclick = () => newStudentModal.style.display = 'block';
-
-        for (let closeBtn of closeBtns) {
-            closeBtn.onclick = function() {
-                newCourseModal.style.display = 'none';
-                newStudentModal.style.display = 'none';
-                editStudentModal.style.display = 'none';
-            }
-        }
-
-        let currentCourseId;
-
-        function openWebhookModal(courseId) {
-            currentCourseId = courseId;
-            document.getElementById('webhookModal').style.display = 'block';
-            document.getElementById('webhookLink').style.display = 'none';
-        }
-
-        document.querySelectorAll('.platform-button').forEach(button => {
-            button.addEventListener('click', function() {
-                const platform = this.dataset.platform;
-                const domain = window.location.hostname === 'localhost' ? 'localhost:3000' : window.location.hostname;
-                const webhookUrl = `https://${domain}/webhook/${platform}/${currentCourseId}`;
-                
-                document.querySelectorAll('.platform-button').forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                
-                const webhookLinkElement = document.getElementById('webhookLink');
-                const webhookUrlElement = document.getElementById('webhookUrl');
-                webhookUrlElement.textContent = webhookUrl;
-                webhookLinkElement.style.display = 'block';
-            });
-        });
-
-        document.getElementById('webhookUrl').addEventListener('click', function() {
-            const textArea = document.createElement('textarea');
-            textArea.value = this.textContent;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            this.textContent = 'Webhook Copiado com Sucesso!';
-            setTimeout(() => {
-                this.textContent = this.dataset.originalText;
-            }, 2000);
-        });
-
-        // Adicione este código à sua lógica existente de fechamento de modal
-        document.querySelector('#webhookModal .close').onclick = function() {
-            document.getElementById('webhookModal').style.display = 'none';
-        };
-
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('webhookModal')) {
-                document.getElementById('webhookModal').style.display = 'none';
-            }
-            if (event.target == newCourseModal) {
-                newCourseModal.style.display = 'none';
-            }
-            if (event.target == newStudentModal) {
-                newStudentModal.style.display = 'none';
-            }
-            if (event.target == editStudentModal) {
-                editStudentModal.style.display = 'none';
-            }
-        }
-
-        // Form submissions
-        document.getElementById('newCourseForm').onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const courseId = this.getAttribute('data-id');
-            const url = courseId ? `/admin/course/${courseId}` : '/admin/course';
-            const method = courseId ? 'PUT' : 'POST';
-
-            const submitButton = document.getElementById('createCourseBtn');
-            const buttonText = submitButton.querySelector('.button-text');
-            const spinner = submitButton.querySelector('.spinner');
-
-            submitButton.disabled = true;
-            buttonText.style.display = 'none';
-            spinner.style.display = 'inline-block';
-
-            fetch(url, {
-                method: method,
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.reset();
-                    document.getElementById('imagePreview').innerHTML = '';
-                    document.getElementById('imagePreview').style.display = 'none';
-                    document.querySelector('.file-input-text').textContent = 'Escolha uma imagem';
-                    document.getElementById('newCourseModal').style.display = 'none';
-                    fetchCourses();
-                } else {
-                    alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso');
-            })
-            .finally(() => {
-                submitButton.disabled = false;
-                buttonText.style.display = 'inline-block';
-                spinner.style.display = 'none';
-                // Resetar o formulário para o estado de criação
-                this.removeAttribute('data-id');
-                document.getElementById('createCourseBtn').innerHTML = `
-                    <span class="button-text">Criar Curso</span>
-                    <span class="spinner" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </span>
-                `;
-            });
-        };
-
-        document.querySelector('#newCourseModal .close').addEventListener('click', function() {
-            document.getElementById('newCourseModal').style.display = 'none';
-            document.getElementById('newCourseForm').reset();
-            document.getElementById('newCourseForm').removeAttribute('data-id');
-            document.getElementById('createCourseBtn').innerHTML = `
-                <span class="button-text">Criar Curso</span>
-                <span class="spinner" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </span>
-            `;
-            document.getElementById('imagePreview').innerHTML = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            document.querySelector('.file-input-text').textContent = 'Escolha uma imagem';
-        });
-
-        document.getElementById('newStudentForm').onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const selectedCourse = document.getElementById('studentCourses').value;
-            formData.set('courses', selectedCourse);  // Usamos 'set' em vez de 'append' para substituir o valor existente
-            
-            fetch('/admin/student', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    newStudentModal.style.display = 'none';
-                    fetchStudents();
-                } else {
-                    alert('Erro ao adicionar o aluno: ' + data.message);
-                }
-            });
-        };
-        
-        document.querySelector('#editCourseModal .close').addEventListener('click', function() {
-            document.getElementById('editCourseModal').style.display = 'none';
-        });
-
-        document.getElementById('editStudentForm').onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const studentId = formData.get('id');
-            const action = formData.get('action');
-            
-            if (action === 'update') {
-                formData.delete('course');  // Remove o campo 'course' se a ação for 'update'
-            }
-            
-            fetch(`/admin/student/${studentId}`, {
-                method: 'PUT',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('editStudentModal').style.display = 'none';
-                    fetchStudents();  // Atualiza a lista de estudantes
-                } else {
-                    alert('Erro ao atualizar o aluno: ' + data.message);
-                }
-            });
-        };
-
-        // Call fetchCoursesForSelect when opening modals
-        newStudentBtn.onclick = () => {
-            newStudentModal.style.display = 'block';
-            fetchCoursesForSelect();
-        };
-
-        // Pré-visualizar a imagem no modal de criar curso
         document.addEventListener('DOMContentLoaded', function() {
-            const input = document.getElementById('courseImage');
-            const preview = document.getElementById('imagePreview');
-            const fileInputText = document.querySelector('.file-input-text');
-
-            input.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            preview.innerHTML = `<img src="${e.target.result}" alt="Pré-visualização da imagem">`;
-                            preview.style.display = 'block';
-                        }
-                        reader.readAsDataURL(file);
-                        fileInputText.textContent = file.name;
-                    } else {
-                        preview.innerHTML = `<p>Arquivo selecionado: ${file.name}</p>`;
-                        preview.style.display = 'block';
-                        fileInputText.textContent = 'Arquivo não é uma imagem';
-                    }
-                } else {
-                    preview.style.display = 'none';
-                    fileInputText.textContent = 'Escolha uma imagem';
-                }
-            });
+            lucide.createIcons();
         });
-
-        function createStudentCourseChart() {
-            fetch('/admin/course-students-stats')
-                .then(response => response.json())
-                .then(data => {
-                    const courseNames = data.map(item => item.course_name);
-                    const studentCounts = data.map(item => item.student_count);
-
-                    const ctx = document.getElementById('studentCourseChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: courseNames,
-                            datasets: [{
-                                label: 'Número de Alunos',
-                                data: studentCounts,
-                                backgroundColor: 'rgba(185, 28, 28, 0.6)',
-                                borderColor: 'rgba(185, 28, 28, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        title: function(context) {
-                                            return context[0].label.length > 20 ? 
-                                                context[0].label.substr(0, 20) + '...' : 
-                                                context[0].label;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        color: 'rgba(255, 255, 255, 0.6)',
-                                        font: {
-                                            size: 10
-                                        }
-                                    },
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        color: 'rgba(255, 255, 255, 0.6)',
-                                        callback: function(value, index, values) {
-                                            return this.getLabelForValue(value).substr(0, 15) + '...';
-                                        },
-                                        maxRotation: 0,
-                                        minRotation: 0,
-                                        font: {
-                                            size: 10
-                                        }
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    });
-                });
-        }
-
-        function importStudents() {
-            window.location.href = '/admin/import-students';
-        }
-
-        // Initialize
-        fetchCourses();
-        fetchTotalStudents();
-        fetchStudents();
-        createStudentCourseChart();
-
-
-        // Report Modal
-        const reportModal = document.getElementById('reportModal');
-        const reportBtn = document.getElementById('reportBtn');
-        const reportForm = document.getElementById('reportForm');
-
-        reportBtn.onclick = () => reportModal.style.display = 'block';
-
-        document.querySelector('#reportModal .close').onclick = function() {
-            reportModal.style.display = 'none';
-        };
-
-        window.onclick = function(event) {
-            if (event.target == reportModal) {
-                reportModal.style.display = 'none';
-            }
-            // Mantenha os outros event listeners de window.onclick aqui
-        };
-
-        reportForm.onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const reportType = formData.get('reportType');
-            const reportDetails = document.getElementById('reportDetails').value;
-
-            fetch('https://n8n-n8n.gumktq.easypanel.host/webhook/bd1548b1-ed3e-44c7-ab20-bd38ef4569e9', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    type: reportType,
-                    details: reportDetails
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Relatório enviado com sucesso!');
-                    reportModal.style.display = 'none';
-                    reportForm.reset();
-                } else {
-                    alert('Erro ao enviar o relatório. Por favor, tente novamente.');
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao enviar o relatório. Por favor, tente novamente.');
-            });
-        };
     </script>
+
+    <!-- JavaScript principal -->
+    <script src="/static/src/js/admin_panel.js"></script>
 </body>
 </html>
