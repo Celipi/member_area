@@ -4,6 +4,13 @@ import json
 from models import Settings, db, Course, Admin
 
 def format_description(description):
+    # Check if the description already contains HTML formatting
+    if description and ('<p>' in description.lower() or '<a' in description.lower() or '<br' in description.lower() or 
+                      '<strong>' in description.lower() or '<em>' in description.lower()):
+        # Already formatted HTML, just return it as is
+        return description
+    
+    # If not, apply formatting for plain text
     # Identifica URLs e as transforma em links HTML
     url_pattern = r'https?://\S+'
     description = re.sub(url_pattern, lambda m: f'<a href="{m.group(0)}" target="_blank" class="text-blue-400 hover:underline">{m.group(0)}</a>', description)

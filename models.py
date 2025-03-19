@@ -48,18 +48,26 @@ class Module(db.Model):
 
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.Text)
-    video_url = db.Column(db.String(255))
-    video_type = db.Column(db.String(10), nullable=False, default='youtube')
-    order = db.Column(db.Integer)
-    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
-    documents = db.relationship('Document', backref='lesson', lazy=True, cascade="all, delete-orphan")
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    video_url = db.Column(db.Text, nullable=True)
+    video_type = db.Column(db.String(50), default='youtube')  # Pode ser 'youtube' ou 'vturb'
+    order = db.Column(db.Integer, nullable=False)
     has_button = db.Column(db.Boolean, default=False)
-    button_text = db.Column(db.String(120))
-    button_link = db.Column(db.String(255))
+    button_text = db.Column(db.String(100))
+    button_link = db.Column(db.String(500))
     button_delay = db.Column(db.Integer)
-    faqs = db.relationship('FAQ', backref='lesson', lazy=True, cascade="all, delete-orphan")
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
+    documents = db.relationship('Document', backref='lesson', lazy=True)
+    
+    def format_video_url(self):
+        if self.video_type == 'youtube':
+            # Formato atual para YouTube
+            return self.video_url
+        elif self.video_type == 'vturb':
+            # Retorna o código VTurb como está
+            return self.video_url
+        return self.video_url
 
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -110,6 +118,15 @@ class Settings(db.Model):
     # OpenAI Integration
     openai_api_enabled = db.Column(db.Boolean, default=False)
     openai_api = db.Column(db.String(255), nullable=True)
+    
+    # Chatbot Integration
+    chatbot_enabled = db.Column(db.Boolean, default=False)
+    chatbot_provider = db.Column(db.String(20), nullable=True)  # 'groq' or 'openai'
+    chatbot_model = db.Column(db.String(50), nullable=True)  # modelo específico a ser usado
+    chatbot_name = db.Column(db.String(100), nullable=True)  # nome do chatbot
+    chatbot_avatar = db.Column(db.String(255), nullable=True)  # caminho para a imagem do avatar
+    chatbot_welcome_message = db.Column(db.Text, nullable=True)  # mensagem de boas-vindas
+    chatbot_use_internal_knowledge = db.Column(db.Boolean, default=False)  # permite que o chatbot use seu conhecimento interno
 
 class Promotion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -173,6 +190,39 @@ class FAQ(db.Model):
     order = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class LessonTranscript(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False, unique=True)
+    
+    # Cache hierarchical data for faster searches
+    lesson_title = db.Column(db.String(120), nullable=False)
+    module_id = db.Column(db.Integer, nullable=False)
+    module_name = db.Column(db.String(120), nullable=False)
+    course_id = db.Column(db.Integer, nullable=False)
+    course_name = db.Column(db.String(120), nullable=False)
+    video_url = db.Column((db.Text), nullable=True)  # Store the video URL for comparison
+    
+    # Transcript content
+    transcript_text = db.Column(db.Text, nullable=False)
+    
+    # Metadata
+    transcription_provider = db.Column(db.String(50), nullable=True)  # e.g., 'openai', 'groq', etc.
+    transcription_model = db.Column(db.String(100), nullable=True)    # Model used for transcription
+    language = db.Column(db.String(10), default='pt-BR')  # ISO language code
+    duration_seconds = db.Column(db.Integer, nullable=True)  # Video/audio duration
+    word_count = db.Column(db.Integer, nullable=True)
+    
+    # For search optimization
+    transcript_vector = db.Column(db.Text, nullable=True)  # Optional: For vector embedding storage
+    searchable_keywords = db.Column(db.Text, nullable=True)  # Optional: Extracted keywords
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<LessonTranscript: {self.lesson_title}>"
 
 def init_db(app):
     db.init_app(app)

@@ -187,6 +187,20 @@ document.addEventListener('DOMContentLoaded', function() {
         coverModalPreview.style.display = "none";
     }
 
+    // Inicializa o editor Quill para a descrição da aula
+    var quill;
+    if (document.getElementById('lessonDescriptionEditor')) {
+        quill = new Quill('#lessonDescriptionEditor', {
+            theme: 'snow',
+            placeholder: 'Digite a descrição da aula...',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike',{ 'color': [] },{ 'background': [] },'link','clean']
+                ]
+            }
+        });
+    }
+
     // Eventos do formulário do módulo
     document.getElementById('moduleForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -223,9 +237,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Eventos do formulário da aula
     document.getElementById('lessonForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        // Copiar o conteúdo formatado do Quill para o input oculto
+        document.getElementById('lessonDescription').value = quill.root.innerHTML;
+        
         const form = new FormData(this);
         const lessonId = document.getElementById('lessonId').value;
         const moduleId = document.getElementById('lessonModuleId').value;
+        const videoType = document.getElementById('lessonVideoType').value;
+
+        // Se for VTurb, pegar o código do textarea específico
+        if (videoType === 'vturb') {
+            const vturbCode = document.getElementById('vturbCode').value;
+            form.set('video_url', vturbCode);
+            form.set('video_type', 'vturb');
+        }
 
         const url = lessonId ? `/admin/lesson/${lessonId}` : `/admin/module/${moduleId}/lesson`;
         const method = lessonId ? 'PUT' : 'POST';
@@ -362,6 +387,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lessonDocumentsName) lessonDocumentsName.textContent = "Nenhum arquivo selecionado";
         const selectedFilesCount = document.getElementById('selectedFilesCount');
         if(selectedFilesCount) selectedFilesCount.textContent = "";
+        // Reinicializa o editor Quill
+        if (quill) {
+            quill.root.innerHTML = '';
+        }
     }
 
     function openModuleModal(moduleId = null) {
@@ -409,6 +438,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const extraOptionsToggle = document.getElementById('extraOptionsToggle');
         const extraOptions = document.getElementById('extraOptions');
         const hasButtonInput = document.getElementById('hasButton');
+        const modal = document.getElementById('lessonModal');
+        const videoTypeSelect = document.getElementById('lessonVideoType');
+        const youtubeUrlGroup = document.getElementById('youtubeUrlGroup');
+        const vturbCodeGroup = document.getElementById('vturbCodeGroup');
+        
+        // Atualizar CTA conforme a seleção de vídeo
+        videoTypeSelect.addEventListener('change', function() {
+            const ctaSection = document.getElementById('ctaSection');
+            if (this.value === 'vturb') {
+                youtubeUrlGroup.style.display = 'none';
+                vturbCodeGroup.style.display = 'block';
+                if (ctaSection) ctaSection.style.display = 'none';
+            } else {
+                youtubeUrlGroup.style.display = 'block';
+                vturbCodeGroup.style.display = 'none';
+                if (ctaSection) ctaSection.style.display = 'block';
+            }
+        });
         
         if (!moduleId) {
             console.error('ID do módulo não fornecido');
@@ -423,14 +470,30 @@ document.addEventListener('DOMContentLoaded', function() {
             if (module) {
                 const lesson = module.lessons.find(l => l.id === lessonId);
                 if (lesson) {
+                    console.log("Lesson encontrada:", lesson);
                     title.textContent = 'Editar Aula';
                     document.getElementById('lessonId').value = lessonId;
                     document.getElementById('lessonTitle').value = lesson.title || '';
+                    if (quill) {
+                        quill.root.innerHTML = lesson.description || '';
+                    }
                     document.getElementById('lessonDescription').value = lesson.description || '';
-                    document.getElementById('lessonVideoUrl').value = lesson.video_url || '';
-                    document.getElementById('lessonVideoType').value = lesson.video_type || 'youtube';
                     
-                    // Carregar CTA conforme os valores da aula
+                    // Configurar tipo de vídeo e campos relacionados
+                    const videoType = lesson.video_type || 'youtube';
+                    videoTypeSelect.value = videoType;
+                    
+                    if (videoType === 'vturb') {
+                        youtubeUrlGroup.style.display = 'none';
+                        vturbCodeGroup.style.display = 'block';
+                        document.getElementById('vturbCode').value = lesson.video_url || '';
+                    } else {
+                        youtubeUrlGroup.style.display = 'block';
+                        vturbCodeGroup.style.display = 'none';
+                        document.getElementById('lessonVideoUrl').value = lesson.video_url || '';
+                    }
+
+                    // Configurar CTA conforme os valores da aula
                     const hasCTA = (lesson.has_button === true || lesson.has_button === 'true');
                     extraOptionsToggle.checked = hasCTA;
                     hasButtonInput.value = hasCTA.toString();
@@ -449,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             files.forEach(file => {
                                 const fileItem = document.createElement('div');
                                 fileItem.className = 'flex items-center justify-between py-2 px-3 bg-gray-50 rounded-md';
-                                fileItem.setAttribute('data-file-id', file.id); // Adicionado para remoção
+                                fileItem.setAttribute('data-file-id', file.id);
                                 fileItem.innerHTML = `
                                     <span class="text-sm text-gray-700">${file.filename}</span>
                                     <button type="button" onclick="removeFile(${lessonId}, ${file.id})" 
@@ -462,16 +525,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             // Reinicializar ícones Lucide
                             lucide.createIcons();
+                        })
+                        .catch(error => {
+                            console.error('Erro ao carregar arquivos:', error);
                         });
+
+                    const uploadSection = document.querySelector('#lessonModal .upload-section');
+                    const existingFilesSection = document.querySelector('#lessonModal .existing-files-section');
+                    if (uploadSection) uploadSection.style.display = 'none';
+                    if (existingFilesSection) existingFilesSection.style.display = 'block';
                 } else {
                     console.error('Aula não encontrada');
                     return;
                 }
-
-                const uploadSection = document.querySelector('#lessonModal .upload-section');
-                const existingFilesSection = document.querySelector('#lessonModal .existing-files-section');
-                if (uploadSection) uploadSection.style.display = 'none';
-                if (existingFilesSection) existingFilesSection.style.display = 'block';
             } else {
                 console.error('Módulo não encontrado');
                 return;
@@ -483,26 +549,45 @@ document.addEventListener('DOMContentLoaded', function() {
             hasButtonInput.value = 'false';
             extraOptions.style.display = 'none';
             
-            // Limpar lista de arquivos para nova aula
+            // Reset video fields
+            videoTypeSelect.value = 'youtube';
+            youtubeUrlGroup.style.display = 'block';
+            vturbCodeGroup.style.display = 'none';
+            document.getElementById('lessonVideoUrl').value = '';
+            document.getElementById('vturbCode').value = '';
+            
             document.getElementById('existingFilesList').innerHTML = '';
 
             const uploadSection = document.querySelector('#lessonModal .upload-section');
             const existingFilesSection = document.querySelector('#lessonModal .existing-files-section');
             if (uploadSection) uploadSection.style.display = 'block';
             if (existingFilesSection) existingFilesSection.style.display = 'none';
+            if (quill) {
+                quill.root.innerHTML = '';
+            }
         }
         
         // Atualizar contador de arquivos selecionados
         const lessonDocuments = document.getElementById('lessonDocuments');
-        lessonDocuments.addEventListener('change', function() {
-            const count = this.files.length;
-            const countText = count > 0 ? `${count} arquivo${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''}` : '';
-            document.getElementById('selectedFilesCount').textContent = countText;
-        });
+        if (lessonDocuments) {
+            lessonDocuments.addEventListener('change', function() {
+                const count = this.files.length;
+                const countText = count > 0 ? `${count} arquivo${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''}` : '';
+                const selectedFilesCount = document.getElementById('selectedFilesCount');
+                if (selectedFilesCount) {
+                    selectedFilesCount.textContent = countText;
+                }
+            });
+        }
 
-        // Garantir que o modal seja exibido
-        lessonModal.style.display = "block";
-        console.log("Modal de aula aberto:", lessonModal.style.display);
+        // Mostrar o modal
+        console.log("Exibindo modal de aula...");
+        if (modal) {
+            modal.style.display = "block";
+            console.log("Modal display style:", modal.style.display);
+        } else {
+            console.error("Modal element não encontrado!");
+        }
     }
 
     function removeFile(lessonId, fileId) {
@@ -742,7 +827,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function editLesson(moduleId, lessonId) {
         console.log("Editando aula:", lessonId, "do módulo:", moduleId);
-        if (typeof moduleId !== 'number' || typeof lessonId !== 'number') {
+        if (!moduleId || !lessonId) {
             console.error('IDs inválidos:', moduleId, lessonId);
             return;
         }

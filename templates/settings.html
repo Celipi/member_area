@@ -524,6 +524,118 @@ Se precisar de ajuda, estamos à disposição!</textarea>
                             </div>
                         </div>
                         
+                        <!-- Integração com Chatbot -->
+                        <div class="mb-6">
+                            <div class="integration-toggle">
+                                <div class="flex items-center">
+                                    <img src="/static/fixed/chatbot.png" alt="Chatbot" class="integration-logo">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-700">Chatbot de Suporte</h4>
+                                        <p class="text-xs text-gray-500">Assistente virtual que responde dúvidas com base nas transcrições das aulas</p>
+                                    </div>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 select-none">
+                                    <input type="checkbox" id="chatbotToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                                    <label for="chatbotToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+                            
+                            <div id="chatbotContent" class="integration-content">
+                                <form id="chatbotSettings">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label for="chatbotName" class="form-label">Nome do Chatbot</label>
+                                            <input type="text" id="chatbotName" class="form-control" placeholder="Ex: Assistente Virtual">
+                                            <p class="text-xs text-gray-500 mt-1">Este nome será exibido aos alunos</p>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="chatbotProvider" class="form-label">Provedor de IA</label>
+                                            <select id="chatbotProvider" class="form-control">
+                                                <option value="">Selecione um provedor</option>
+                                                <option value="groq">GROQ AI</option>
+                                                <option value="openai">OpenAI</option>
+                                            </select>
+                                            <p id="providerWarning" class="text-xs text-red-500 mt-1 hidden">É necessário ativar e configurar o provedor selecionado primeiro.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="chatbotModel" class="form-label">Modelo de IA</label>
+                                        <select id="chatbotModel" class="form-control" disabled>
+                                            <option value="">Selecione um modelo</option>
+                                        </select>
+                                        <p class="text-xs text-gray-500 mt-1">Selecione primeiro o provedor para ver os modelos disponíveis</p>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="chatbotWelcomeMessage" class="form-label">Mensagem de Boas-vindas</label>
+                                        <textarea id="chatbotWelcomeMessage" class="form-control h-20" placeholder="Ex: Olá! Sou o assistente virtual. Como posso ajudar nos seus estudos hoje?"></textarea>
+                                        <p class="text-xs text-gray-500 mt-1">Mensagem exibida quando o aluno abre o chat</p>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <label class="form-label">Usar conhecimento interno da IA</label>
+                                            <div class="relative inline-block w-12 h-6 select-none">
+                                                <input type="checkbox" id="internalKnowledgeToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer">
+                                                <label for="internalKnowledgeToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-gray-500">Quando ativado, o chatbot responderá perguntas gerais e permitirá conversas casuais mesmo sem informação nas aulas</p>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Avatar do Chatbot</label>
+                                        <div class="flex items-center space-x-4">
+                                            <div id="avatarPreview" class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                                                <i data-lucide="user" class="h-8 w-8 text-gray-400"></i>
+                                            </div>
+                                            <div>
+                                                <label for="chatbotAvatar" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md cursor-pointer flex items-center w-max">
+                                                    <i data-lucide="upload" class="h-4 w-4 mr-2"></i>
+                                                    Enviar imagem
+                                                </label>
+                                                <input type="file" id="chatbotAvatar" class="hidden" accept="image/*">
+                                                <p class="text-xs text-gray-500 mt-1">Recomendado: imagem quadrada de 200x200px</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="chatbotPreview" class="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 hidden">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2">Visualização do Chatbot</h4>
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 rounded-full bg-gray-300 overflow-hidden flex-shrink-0 mr-3">
+                                                <img id="previewChatbotAvatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                                                <i data-lucide="user" class="h-6 w-6 text-gray-500 m-auto"></i>
+                                            </div>
+                                            <div class="bg-primary text-white rounded-lg p-3 max-w-xs">
+                                                <p id="previewChatbotName" class="text-xs font-medium"></p>
+                                                <p id="previewChatbotMessage" class="text-sm"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="chatbotRequiredApiMessage" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0">
+                                                <i data-lucide="alert-triangle" class="h-5 w-5 text-yellow-400"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm text-yellow-700">
+                                                    Para ativar o Chatbot, é necessário configurar pelo menos um provedor de IA (GROQ ou OpenAI).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-footer">
+                                        <button type="submit" class="settings-btn primary">Salvar Configurações</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
                 

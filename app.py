@@ -19,6 +19,7 @@ import pytz
 from models import ShowcaseAnalytics
 from faq import faq
 from faq_ai import faq_ai
+from chatbot import chatbot
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -1383,11 +1384,16 @@ def update_brevo_settings():
     if enabled and not api_key:
         return jsonify({'success': False, 'message': 'API Key é obrigatória quando a integração está ativa'}), 400
     
-    settings.brevo_api_key = api_key
-    settings.brevo_email_subject = email_subject
-    settings.brevo_email_template = email_template
-    settings.sender_name = sender_name
-    settings.sender_email = sender_email
+    if enabled:
+        settings.brevo_api_key = api_key
+        settings.brevo_email_subject = email_subject
+        settings.brevo_email_template = email_template
+        settings.sender_name = sender_name
+        settings.sender_email = sender_email
+    else:
+        # When disabled, clear out the settings
+        settings.brevo_api_key = None
+        # Preserve the template and other settings for when the integration is re-enabled
     
     db.session.commit()
     
@@ -1420,12 +1426,16 @@ def update_evolution_settings():
             return jsonify({'success': False, 'message': 'Versão da API é obrigatória quando a integração está ativada'}), 400
         if not instance:
             return jsonify({'success': False, 'message': 'Instância do WhatsApp é obrigatória quando a integração está ativada'}), 400
-    
-    settings.evolution_url = url
-    settings.evolution_api_key = api_key
-    settings.evolution_message_template = message_template
-    settings.evolution_version = version  # Save the API version
-    settings.evolution_instance = instance  # Save the WhatsApp instance
+        
+        settings.evolution_url = url
+        settings.evolution_api_key = api_key
+        settings.evolution_message_template = message_template
+        settings.evolution_version = version  # Save the API version
+        settings.evolution_instance = instance  # Save the WhatsApp instance
+    else:
+        # When disabled, clear out the settings
+        settings.evolution_api_key = None
+        # Preserve the template and other settings for when the integration is re-enabled
     
     db.session.commit()
     
@@ -1821,6 +1831,7 @@ app.register_blueprint(promote)
 app.register_blueprint(showcase)  # Register the showcase blueprint
 app.register_blueprint(faq)  # Register the FAQ blueprint
 app.register_blueprint(faq_ai)  # Register the FAQ AI blueprint
+app.register_blueprint(chatbot)  # Register the chatbot blueprint
 
 if __name__ == '__main__':
     with app.app_context():

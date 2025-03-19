@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', function() {
             tooltipText.style.display = 'none';
         });
     });
+
+    // Configurar funcionalidades do chatbot
+    setupChatbotSettings();
 });
 
 /**
@@ -68,7 +71,7 @@ function loadSettings() {
                 
                 if (data.brevo.enabled) {
                     if (brevoToggle) brevoToggle.checked = true;
-                    if (brevoContent) brevoContent.classList.add('active');
+                    if (brevoContent) brevoContent.classList.remove('hidden');
                 }
                 
                 if (data.brevo.api_key) {
@@ -115,7 +118,7 @@ Equipe de Suporte`;
                 
                 if (data.evolution.enabled) {
                     if (evolutionToggle) evolutionToggle.checked = true;
-                    if (evolutionContent) evolutionContent.classList.add('active');
+                    if (evolutionContent) evolutionContent.classList.remove('hidden');
                 }
                 
                 if (data.evolution.url) {
@@ -178,7 +181,7 @@ Se precisar de ajuda, estamos à disposição!`;
                 
                 if (data.groq.enabled) {
                     if (groqToggle) groqToggle.checked = true;
-                    if (groqContent) groqContent.classList.add('active');
+                    if (groqContent) groqContent.classList.remove('hidden');
                 }
                 
                 if (data.groq.api_key) {
@@ -193,13 +196,17 @@ Se precisar de ajuda, estamos à disposição!`;
                 
                 if (data.openai.enabled) {
                     if (openaiToggle) openaiToggle.checked = true;
-                    if (openaiContent) openaiContent.classList.add('active');
+                    if (openaiContent) openaiContent.classList.remove('hidden');
                 }
                 
                 if (data.openai.api_key) {
                     document.getElementById('openaiApiKey').value = data.openai.api_key;
                 }
             }
+            
+            // IMPORTANTE: Verificar dependências do chatbot APÓS carregar todos os dados da API
+            // Isso corrige o problema do toggle do chatbot não ser habilitado corretamente
+            checkChatbotDependencies();
         })
         .catch(error => {
             console.error('Erro ao carregar configurações:', error);
@@ -211,197 +218,74 @@ Se precisar de ajuda, estamos à disposição!`;
  * Setup toggle behavior for integration sections
  */
 function setupIntegrationsToggles() {
-    // Brevo Toggle
-    const brevoToggle = document.getElementById('brevoToggle');
-    const brevoContent = document.getElementById('brevoContent');
+    const toggles = document.querySelectorAll('.integration-toggle input[type="checkbox"]');
     
-    if (brevoToggle && brevoContent) {
-        brevoToggle.addEventListener('change', function() {
-            // If trying to disable and currently enabled
-            if (!this.checked && brevoContent.classList.contains('active')) {
-                if (confirm('Deseja realmente desativar a integração com Brevo?')) {
-                    // Update database - only change enabled status
-                    const formData = new FormData();
-                    formData.append('enabled', false);
-                    // Keep other existing values
-                    formData.append('api_key', document.getElementById('brevoApiKey').value);
-                    formData.append('email_subject', document.getElementById('brevoEmailSubject').value);
-                    formData.append('email_template', document.getElementById('brevoEmailTemplate').value);
-                    formData.append('sender_name', document.getElementById('sender_name').value);
-                    formData.append('sender_email', document.getElementById('sender_email').value);
-
-                    fetch('/api/settings/brevo', {
+    toggles.forEach(toggle => {
+        const targetId = toggle.id.replace('Toggle', 'Content');
+        const targetContent = document.getElementById(targetId);
+        
+        if (!targetContent) return;
+        
+        // Estado inicial
+        if (toggle.checked) {
+            targetContent.classList.remove('hidden');
+        } else {
+            targetContent.classList.add('hidden');
+        }
+        
+        // Manipular eventos
+        toggle.addEventListener('change', function() {
+            // Caso especial para o chatbot que precisa verificar dependências
+            if (this.id === 'chatbotToggle') {
+                if (this.checked) {
+                    // Verificar dependências do chatbot
+                    if (checkChatbotDependencies()) {
+                        targetContent.classList.remove('hidden');
+                    } else {
+                        this.checked = false;
+                    }
+                } else {
+                    targetContent.classList.add('hidden');
+                    
+                    // Enviar imediatamente o estado desativado para o servidor
+                    fetch('/api/chatbot/settings', {
                         method: 'POST',
-                        body: formData
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ enabled: false })
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            brevoContent.classList.remove('active');
-                            showNotification('Integração com Brevo desativada com sucesso!', 'success');
+                            showNotification('Chatbot desativado com sucesso!');
                         } else {
-                            showNotification('Erro ao desativar integração com Brevo.', 'error');
-                            // Revert toggle if failed
-                            this.checked = true;
+                            showNotification(data.error || 'Erro ao desativar chatbot.', 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Erro:', error);
-                        showNotification('Erro ao desativar integração com Brevo.', 'error');
-                        // Revert toggle if failed
-                        this.checked = true;
+                        showNotification('Erro ao desativar chatbot. Tente novamente.', 'error');
                     });
-                } else {
-                    // User cancelled, revert toggle
-                    this.checked = true;
                 }
-            } else if (this.checked) {
-                brevoContent.classList.add('active');
+                return;
+            }
+            
+            // Comportamento padrão para outros toggles
+            if (this.checked) {
+                targetContent.classList.remove('hidden');
+            } else {
+                targetContent.classList.add('hidden');
+            }
+            
+            // Automatically submit the form when toggle changes
+            const formId = this.id.replace('Toggle', 'Settings');
+            const form = document.getElementById(formId);
+            if (form) {
+                // Trigger submit event on the form
+                const submitEvent = new Event('submit', { cancelable: true });
+                form.dispatchEvent(submitEvent);
             }
         });
-    }
-    
-    // Evolution Toggle
-    const evolutionToggle = document.getElementById('evolutionToggle');
-    const evolutionContent = document.getElementById('evolutionContent');
-    
-    if (evolutionToggle && evolutionContent) {
-        evolutionToggle.addEventListener('change', function() {
-            // If trying to disable and currently enabled
-            if (!this.checked && evolutionContent.classList.contains('active')) {
-                if (confirm('Deseja realmente desativar a integração com Evolution API?')) {
-                    // Update database - only change enabled status
-                    const formData = new FormData();
-                    formData.append('enabled', false);
-                    // Keep other existing values
-                    formData.append('url', document.getElementById('evolutionUrl').value);
-                    formData.append('api_key', document.getElementById('evolutionApiKey').value);
-                    formData.append('message_template', document.getElementById('evolutionTemplate').value);
-                    formData.append('version', document.getElementById('evolutionVersion').value);
-                    formData.append('instance', document.getElementById('evolutionInstance').value);
-
-                    fetch('/api/settings/evolution', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            evolutionContent.classList.remove('active');
-                            showNotification('Integração com Evolution API desativada com sucesso!', 'success');
-                        } else {
-                            showNotification('Erro ao desativar integração com Evolution API.', 'error');
-                            // Revert toggle if failed
-                            this.checked = true;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro:', error);
-                        showNotification('Erro ao desativar integração com Evolution API.', 'error');
-                        // Revert toggle if failed
-                        this.checked = true;
-                    });
-                } else {
-                    // User cancelled, revert toggle
-                    this.checked = true;
-                }
-            } else if (this.checked) {
-                evolutionContent.classList.add('active');
-            }
-        });
-    }
-    
-    // GROQ AI Toggle
-    const groqToggle = document.getElementById('groqToggle');
-    const groqContent = document.getElementById('groqContent');
-    
-    if (groqToggle && groqContent) {
-        groqToggle.addEventListener('change', function() {
-            // If trying to disable and currently enabled
-            if (!this.checked && groqContent.classList.contains('active')) {
-                if (confirm('Deseja realmente desativar a integração com GROQ AI?')) {
-                    // Update database - only change enabled status
-                    const formData = new FormData();
-                    formData.append('enabled', false);
-                    // Keep other existing values
-                    formData.append('api_key', document.getElementById('groqApiKey').value);
-
-                    fetch('/api/settings/groq', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            groqContent.classList.remove('active');
-                            showNotification('Integração com GROQ AI desativada com sucesso!', 'success');
-                        } else {
-                            showNotification('Erro ao desativar integração com GROQ AI.', 'error');
-                            // Revert toggle if failed
-                            this.checked = true;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro:', error);
-                        showNotification('Erro ao desativar integração com GROQ AI.', 'error');
-                        // Revert toggle if failed
-                        this.checked = true;
-                    });
-                } else {
-                    // User cancelled, revert toggle
-                    this.checked = true;
-                }
-            } else if (this.checked) {
-                groqContent.classList.add('active');
-            }
-        });
-    }
-    
-    // OpenAI Toggle
-    const openaiToggle = document.getElementById('openaiToggle');
-    const openaiContent = document.getElementById('openaiContent');
-    
-    if (openaiToggle && openaiContent) {
-        openaiToggle.addEventListener('change', function() {
-            // If trying to disable and currently enabled
-            if (!this.checked && openaiContent.classList.contains('active')) {
-                if (confirm('Deseja realmente desativar a integração com OpenAI?')) {
-                    // Update database - only change enabled status
-                    const formData = new FormData();
-                    formData.append('enabled', false);
-                    // Keep other existing values
-                    formData.append('api_key', document.getElementById('openaiApiKey').value);
-
-                    fetch('/api/settings/openai', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            openaiContent.classList.remove('active');
-                            showNotification('Integração com OpenAI desativada com sucesso!', 'success');
-                        } else {
-                            showNotification('Erro ao desativar integração com OpenAI.', 'error');
-                            // Revert toggle if failed
-                            this.checked = true;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro:', error);
-                        showNotification('Erro ao desativar integração com OpenAI.', 'error');
-                        // Revert toggle if failed
-                        this.checked = true;
-                    });
-                } else {
-                    // User cancelled, revert toggle
-                    this.checked = true;
-                }
-            } else if (this.checked) {
-                openaiContent.classList.add('active');
-            }
-        });
-    }
+    });
 }
 
 /**
@@ -1218,3 +1102,432 @@ function setupVariablesModal() {
 
 // Função global para inserir tags nos templates
 window.insertTemplateTag = insertTemplateTag;
+
+// Função global para verificar dependências do chatbot
+function checkChatbotDependencies() {
+    const groqEnabled = document.getElementById('groqToggle').checked;
+    const openaiEnabled = document.getElementById('openaiToggle').checked;
+    const chatbotRequiredApiMessage = document.getElementById('chatbotRequiredApiMessage');
+    const chatbotToggle = document.getElementById('chatbotToggle');
+    const chatbotContent = document.getElementById('chatbotContent');
+    
+    if (!groqEnabled && !openaiEnabled) {
+        // Se não há APIs configuradas, desabilitar o toggle do chatbot
+        if (chatbotRequiredApiMessage) {
+            chatbotRequiredApiMessage.classList.remove('hidden');
+        }
+        if (chatbotToggle) {
+            chatbotToggle.disabled = true;
+            if (chatbotToggle.checked) {
+                chatbotToggle.checked = false;
+                if (chatbotContent) {
+                    chatbotContent.classList.add('hidden');
+                }
+            }
+        }
+        return false;
+    } else {
+        // Se há pelo menos uma API configurada, habilitar o toggle do chatbot
+        if (chatbotRequiredApiMessage) {
+            chatbotRequiredApiMessage.classList.add('hidden');
+        }
+        if (chatbotToggle) {
+            chatbotToggle.disabled = false;
+            
+            // Não alteramos o estado checked do toggle aqui,
+            // pois isso deve ser determinado pelos dados da API
+        }
+        return true;
+    }
+}
+
+function setupChatbotSettings() {
+    const chatbotProvider = document.getElementById('chatbotProvider');
+    const chatbotModel = document.getElementById('chatbotModel');
+    const chatbotSettings = document.getElementById('chatbotSettings');
+    const chatbotPreview = document.getElementById('chatbotPreview');
+    const chatbotRequiredApiMessage = document.getElementById('chatbotRequiredApiMessage');
+    const internalKnowledgeToggle = document.getElementById('internalKnowledgeToggle');
+    
+    // Eventos dos providers de IA
+    document.getElementById('groqToggle').addEventListener('change', checkChatbotDependencies);
+    document.getElementById('openaiToggle').addEventListener('change', checkChatbotDependencies);
+    
+    // Mudança no provider do chatbot
+    if (chatbotProvider) {
+        chatbotProvider.addEventListener('change', function() {
+            const provider = this.value;
+            const providerWarning = document.getElementById('providerWarning');
+            
+            chatbotModel.innerHTML = '<option value="">Selecione um modelo</option>';
+            
+            if (provider === 'groq') {
+                const groqEnabled = document.getElementById('groqToggle').checked;
+                if (!groqEnabled) {
+                    providerWarning.textContent = 'É necessário ativar e configurar o GROQ primeiro.';
+                    providerWarning.classList.remove('hidden');
+                    chatbotModel.disabled = true;
+                    return;
+                } else {
+                    providerWarning.classList.add('hidden');
+                    chatbotModel.disabled = false;
+                }
+                
+                // Modelos GROQ
+                const groqModels = [
+                    { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 com 70b (recomendado)', description: 'Modelo versátil com forte raciocínio' },
+                    { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 com 70b', description: 'Alta capacidade de análise e síntese' },
+                    { id: 'llama-3.2-90b-vision-preview', name: 'Llama 3.2 com 90b', description: 'Modelo de grande capacidade' },
+                    { id: 'deepseek-r1-distill-qwen-32b', name: 'DeepSeek R1 com 32b', description: 'Bom equilíbrio de velocidade e qualidade' },
+                    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 com 8b', description: 'Mais leve e rápido para respostas imediatas' }
+                ];
+                
+                groqModels.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.name;
+                    chatbotModel.appendChild(option);
+                });
+                
+                // Definir Llama 3.3 como valor inicial
+                chatbotModel.value = 'llama-3.3-70b-versatile';
+                
+            } else if (provider === 'openai') {
+                const openaiEnabled = document.getElementById('openaiToggle').checked;
+                if (!openaiEnabled) {
+                    providerWarning.textContent = 'É necessário ativar e configurar a OpenAI primeiro.';
+                    providerWarning.classList.remove('hidden');
+                    chatbotModel.disabled = true;
+                    return;
+                } else {
+                    providerWarning.classList.add('hidden');
+                    chatbotModel.disabled = false;
+                }
+                
+                // Modelos OpenAI
+                const openaiModels = [
+                    { id: 'gpt-4o-mini', name: 'GPT-4O Mini (recomendado)', description: 'Versão mais rápida do GPT-4O' },
+                    { id: 'gpt-4o', name: 'GPT-4O', description: 'Modelo mais avançado' },
+                    { id: 'gpt-o1', name: 'GPT-O1', description: 'Bom equilíbrio entre velocidade e qualidade' },
+                    { id: 'gpt-o1-mini', name: 'GPT-O1 Mini', description: 'Modelo compacto e rápido' },
+                    { id: 'gpt-o3-mini', name: 'GPT-O3 Mini', description: 'Modelo mais leve e rápido' }
+                ];
+                
+                openaiModels.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.name;
+                    chatbotModel.appendChild(option);
+                });
+                
+                // Definir GPT-4O Mini como valor inicial
+                chatbotModel.value = 'gpt-4o-mini';
+            } else {
+                chatbotModel.disabled = true;
+            }
+            
+            updateChatbotPreview();
+        });
+    }
+    
+    // Atualizar preview do chatbot
+    function updateChatbotPreview() {
+        const name = document.getElementById('chatbotName').value || 'Assistente Virtual';
+        const message = document.getElementById('chatbotWelcomeMessage').value || 'Olá! Como posso ajudar com seus estudos hoje?';
+        const avatarPreview = document.getElementById('avatarPreview');
+        const previewName = document.getElementById('previewChatbotName');
+        const previewMessage = document.getElementById('previewChatbotMessage');
+        const previewAvatar = document.getElementById('previewChatbotAvatar');
+        
+        if (name || message) {
+            chatbotPreview.classList.remove('hidden');
+            previewName.textContent = name;
+            previewMessage.textContent = message;
+            
+            // Verificar se há avatar
+            if (avatarPreview.querySelector('img') && avatarPreview.querySelector('img').src) {
+                previewAvatar.src = avatarPreview.querySelector('img').src;
+                previewAvatar.classList.remove('hidden');
+                chatbotPreview.querySelector('[data-lucide="user"]').classList.add('hidden');
+            } else {
+                previewAvatar.classList.add('hidden');
+                chatbotPreview.querySelector('[data-lucide="user"]').classList.remove('hidden');
+            }
+        } else {
+            chatbotPreview.classList.add('hidden');
+        }
+    }
+    
+    // Atualizar preview ao digitar
+    document.getElementById('chatbotName').addEventListener('input', updateChatbotPreview);
+    document.getElementById('chatbotWelcomeMessage').addEventListener('input', updateChatbotPreview);
+    
+    // Upload de avatar
+    const chatbotAvatar = document.getElementById('chatbotAvatar');
+    if (chatbotAvatar) {
+        chatbotAvatar.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    
+                    // Remover ícone e adicionar imagem
+                    avatarPreview.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.classList.add('w-full', 'h-full', 'object-cover');
+                    avatarPreview.appendChild(img);
+                    
+                    updateChatbotPreview();
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Enviar configurações do chatbot
+    if (chatbotSettings) {
+        chatbotSettings.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Verifica se está ativado
+            const enabled = chatbotToggle.checked;
+            
+            // Se desativado, apenas salva essa informação
+            if (!enabled) {
+                const data = { enabled: false };
+                
+                fetch('/api/chatbot/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Configurações do chatbot atualizadas com sucesso!');
+                    } else {
+                        showNotification(data.error || 'Erro ao atualizar configurações do chatbot.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    showNotification('Erro ao salvar configurações do chatbot.', 'error');
+                });
+                
+                return;
+            }
+            
+            // Validar campos obrigatórios
+            const provider = chatbotProvider.value;
+            const model = chatbotModel.value;
+            
+            if (!provider) {
+                showNotification('Selecione um provedor de IA.', 'error');
+                return;
+            }
+            
+            if (!model) {
+                showNotification('Selecione um modelo de IA.', 'error');
+                return;
+            }
+            
+            // Preparar dados
+            const formData = new FormData();
+            
+            // Se tiver um arquivo de avatar, fazer upload primeiro
+            if (chatbotAvatar.files.length > 0) {
+                formData.append('file', chatbotAvatar.files[0]);
+                
+                fetch('/api/chatbot/avatar', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        saveChatbotSettings(data.url);
+                    } else {
+                        showNotification(data.error || 'Erro ao fazer upload do avatar.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    showNotification('Erro ao fazer upload do avatar.', 'error');
+                });
+            } else {
+                // Se não tiver avatar novo, salvar as configurações direto
+                saveChatbotSettings();
+            }
+        });
+    }
+    
+    // Função para salvar configurações do chatbot
+    function saveChatbotSettings(avatarUrl = null) {
+        const data = {
+            enabled: chatbotToggle.checked,
+            provider: chatbotProvider.value,
+            model: chatbotModel.value,
+            name: document.getElementById('chatbotName').value,
+            welcome_message: document.getElementById('chatbotWelcomeMessage').value,
+            use_internal_knowledge: document.getElementById('internalKnowledgeToggle').checked
+        };
+        
+        // Se tiver avatar novo, usar ele
+        if (avatarUrl) {
+            data.avatar = avatarUrl;
+        } else {
+            // Se já tiver avatar carregado previamente
+            const previewImg = document.getElementById('avatarPreview').querySelector('img');
+            if (previewImg && previewImg.getAttribute('data-original-src')) {
+                data.avatar = previewImg.getAttribute('data-original-src');
+            }
+        }
+        
+        fetch('/api/chatbot/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Configurações do chatbot atualizadas com sucesso!');
+            } else {
+                showNotification(data.error || 'Erro ao atualizar configurações do chatbot.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showNotification('Erro ao salvar configurações do chatbot.', 'error');
+        });
+    }
+    
+    // Carregar configurações do chatbot
+    loadChatbotSettings();
+}
+
+// Carregar configurações do chatbot
+function loadChatbotSettings() {
+    fetch('/api/chatbot/settings')
+    .then(response => response.json())
+    .then(data => {
+        if (!data.error) {
+            // Definir estados dos toggles
+            document.getElementById('chatbotToggle').checked = data.enabled;
+            if (data.enabled) {
+                document.getElementById('chatbotContent').classList.remove('hidden');
+            } else {
+                document.getElementById('chatbotContent').classList.add('hidden');
+            }
+            
+            // Preencher campos
+            document.getElementById('chatbotName').value = data.name || '';
+            document.getElementById('chatbotWelcomeMessage').value = data.welcome_message || '';
+            document.getElementById('internalKnowledgeToggle').checked = data.use_internal_knowledge || false;
+            
+            // Selecionar provider e modelo
+            const providerSelect = document.getElementById('chatbotProvider');
+            const modelSelect = document.getElementById('chatbotModel');
+            
+            // Primeiro garantir que o provedor escolhido esteja ativado
+            if (data.provider === 'groq' && !document.getElementById('groqToggle').checked) {
+                document.getElementById('providerWarning').textContent = 'É necessário ativar e configurar o GROQ primeiro.';
+                document.getElementById('providerWarning').classList.remove('hidden');
+                modelSelect.disabled = true;
+            } else if (data.provider === 'openai' && !document.getElementById('openaiToggle').checked) {
+                document.getElementById('providerWarning').textContent = 'É necessário ativar e configurar a OpenAI primeiro.';
+                document.getElementById('providerWarning').classList.remove('hidden');
+                modelSelect.disabled = true;
+            } else if (data.provider) {
+                // Se o provedor estiver ativado, configurar corretamente
+                providerSelect.value = data.provider;
+                document.getElementById('providerWarning').classList.add('hidden');
+                modelSelect.disabled = false;
+                
+                // Carregar os modelos manualmente com base no provedor selecionado
+                modelSelect.innerHTML = '<option value="">Selecione um modelo</option>';
+                
+                if (data.provider === 'groq') {
+                    // Modelos GROQ
+                    const groqModels = [
+                        { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 com 70b (recomendado)', description: 'Modelo versátil com forte raciocínio' },
+                        { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 com 70b', description: 'Alta capacidade de análise e síntese' },
+                        { id: 'llama-3.2-90b-vision-preview', name: 'Llama 3.2 com 90b', description: 'Modelo de grande capacidade' },
+                        { id: 'deepseek-r1-distill-qwen-32b', name: 'DeepSeek R1 com 32b', description: 'Bom equilíbrio de velocidade e qualidade' },
+                        { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 com 8b', description: 'Mais leve e rápido para respostas imediatas' }
+                    ];
+                    
+                    groqModels.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.name;
+                        modelSelect.appendChild(option);
+                    });
+                    
+                    // Se não tiver modelo definido, selecionar o Llama 3.3 por padrão
+                    if (!data.model) {
+                        modelSelect.value = 'llama-3.3-70b-versatile';
+                    } else {
+                        modelSelect.value = data.model;
+                    }
+                    
+                } else if (data.provider === 'openai') {
+                    // Modelos OpenAI
+                    const openaiModels = [
+                        { id: 'gpt-4o-mini', name: 'GPT-4O Mini (recomendado)', description: 'Versão mais rápida do GPT-4O' },
+                        { id: 'gpt-4o', name: 'GPT-4O', description: 'Modelo mais avançado' },
+                        { id: 'gpt-o1', name: 'GPT-O1', description: 'Bom equilíbrio entre velocidade e qualidade' },
+                        { id: 'gpt-o1-mini', name: 'GPT-O1 Mini', description: 'Modelo compacto e rápido' },
+                        { id: 'gpt-o3-mini', name: 'GPT-O3 Mini', description: 'Modelo mais leve e rápido' }
+                    ];
+                    
+                    openaiModels.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.name;
+                        modelSelect.appendChild(option);
+                    });
+                    
+                    // Se não tiver modelo definido, selecionar o GPT-4O Mini por padrão
+                    if (!data.model) {
+                        modelSelect.value = 'gpt-4o-mini';
+                    } else {
+                        modelSelect.value = data.model;
+                    }
+                }
+            }
+            
+            // Avatar
+            if (data.avatar) {
+                const avatarPreview = document.getElementById('avatarPreview');
+                avatarPreview.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = data.avatar;
+                img.setAttribute('data-original-src', data.avatar);
+                img.classList.add('w-full', 'h-full', 'object-cover');
+                avatarPreview.appendChild(img);
+                
+                // Atualizar preview
+                const previewAvatar = document.getElementById('previewChatbotAvatar');
+                previewAvatar.src = data.avatar;
+                previewAvatar.classList.remove('hidden');
+                document.getElementById('chatbotPreview').querySelector('[data-lucide="user"]').classList.add('hidden');
+            }
+            
+            // Atualizar preview
+            const name = data.name || 'Assistente Virtual';
+            const message = data.welcome_message || 'Olá! Como posso ajudar com seus estudos hoje?';
+            
+            if (name || message) {
+                document.getElementById('chatbotPreview').classList.remove('hidden');
+                document.getElementById('previewChatbotName').textContent = name;
+                document.getElementById('previewChatbotMessage').textContent = message;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao carregar configurações do chatbot:', error);
+    });
+}

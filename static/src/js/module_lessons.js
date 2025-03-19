@@ -189,3 +189,20 @@ function loadFAQ() {
             fullFaqSection.style.display = 'none'; // Hide FAQ section on error
         });
 }
+
+// Configuração do botão CTA
+function setupCTAButton() {
+    const ctaButton = document.getElementById('ctaButton');
+    if (ctaButton && window.button_delay) {
+        setTimeout(() => {
+            ctaButton.style.display = 'block';
+            // Adiciona classe de animação se desejar
+            ctaButton.classList.add('fade-in');
+        }, window.button_delay * 1000);
+    }
+}
+
+function setupVideo() {
+    // Não precisa fazer nada para o VTurb pois o código já inclui o script necessário
+    // O código inserido via innerHTML já contém tudo que é necessário
+}

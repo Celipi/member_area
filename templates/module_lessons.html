@@ -48,6 +48,16 @@
             }
         }
     </script>
+    <style>
+        /* Custom styling for hyperlinks in lesson description */
+        .prose a {
+            color: #B91C1C; /* Red color matching primary color */
+            text-decoration: underline;
+        }
+        .prose a:hover {
+            color: #991B1B; /* Darker red on hover */
+        }
+    </style>
 </head>
 <body class="min-h-screen bg-gray-50 font-sans text-gray-800 flex flex-col">
     <!-- Nav superior -->
@@ -65,7 +75,14 @@
             <!-- Coluna principal com o vídeo e conteúdo da aula -->
             <div class="lg:w-3/4">
                 <!-- Player de Vídeo -->
-                <div id="target"></div>
+                <!-- Player container -->
+                {% if current_lesson.video_type == 'youtube' %}
+                    <div id="target"></div>
+                {% elif current_lesson.video_type == 'vturb' %}
+                    <div class="video-container rounded-lg overflow-hidden bg-gray-900 mb-6">
+                        {{ current_lesson.video_url | safe }}
+                    </div>
+                {% endif %}
 
                 {% if current_lesson.has_button %}
                 <div id="ctaButton" class="mt-8 text-center" style="display: none;">
@@ -342,5 +359,7 @@
     
     <!-- JavaScript -->
     <script src="/static/src/js/module_lessons.js"></script>
+    <!-- Chatbot Script -->
+    <script src="/static/src/js/chatbot.js"></script>
 </body>
 </html>
