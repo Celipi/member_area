@@ -79,13 +79,13 @@ env:
 accessories:
   database:
     image: postgres:14
-    host: 178.156.143.174
-    options:
-      restart: always
+    host: demo.membriumwl.com
+    port: "127.0.0.1:5432:5432"
     env:
+      clear:
+        POSTGRES_USER: "postgres"
+        POSTGRES_DB: "membriumwl"
       secret:
         - POSTGRES_PASSWORD
-        - POSTGRES_USER
-        - POSTGRES_DB
-    volumes:
+    directories:
       - postgres_data:/var/lib/postgresql/data
