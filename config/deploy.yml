@@ -80,7 +80,7 @@ accessories:
   database:
     image: postgres:14
     host: demo.membriumwl.com
-    port: "127.0.0.1:5432:5432"
+    port: "5432:5432"
     env:
       clear:
         POSTGRES_USER: "postgres"
