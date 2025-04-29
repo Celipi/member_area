@@ -76,17 +76,3 @@ env:
 #   wait: 2
 
 # Use accessory services (secrets come from .kamal/secrets).
-#
-accessories:
-  postgres:
-    image: postgres:15
-    host: 178.156.143.174 # IP do servidor onde o PostgreSQL vai rodar
-    port: 5432
-    env:
-      clear:
-        POSTGRES_USER: postgres
-        POSTGRES_DB: membriumwl
-      secret:
-        - POSTGRES_PASSWORD
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
