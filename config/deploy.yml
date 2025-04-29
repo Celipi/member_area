@@ -76,3 +76,16 @@ env:
 #   wait: 2
 
 # Use accessory services (secrets come from .kamal/secrets).
+accessories:
+  database:
+    image: postgres:14
+    host: 178.156.143.174
+    options:
+      restart: always
+    env:
+      secret:
+        - POSTGRES_PASSWORD
+        - POSTGRES_USER
+        - POSTGRES_DB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
