@@ -126,33 +126,33 @@ function loadFAQ() {
                 
                 faqContainer.innerHTML = data.map((item, index) => {
                     if (isMobile) {
-                        // Mobile layout - without number circle
+                        // Mobile layout - without number circle - dark mode styling
                         return `
                             <div class="faq-item" data-faq-id="${item.id}">
-                                <button class="w-full text-left flex items-center justify-between p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                                    <h4 class="text-gray-800 font-medium pr-8 flex-1">${escapeHtml(item.question)}</h4>
+                                <button class="w-full text-left flex items-center justify-between p-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
+                                    <h4 class="text-gray-200 font-medium pr-8 flex-1">${escapeHtml(item.question)}</h4>
                                     <i data-lucide="chevron-down" class="h-5 w-5 text-gray-400 transform transition-transform flex-shrink-0"></i>
                                 </button>
-                                <div class="faq-answer hidden px-4 py-3 border-t border-gray-200">
-                                    <p class="text-gray-600 whitespace-pre-wrap">${escapeHtml(item.answer)}</p>
+                                <div class="faq-answer hidden px-4 py-3 border-t border-gray-700">
+                                    <p class="text-gray-300 whitespace-pre-wrap">${escapeHtml(item.answer)}</p>
                                 </div>
                             </div>
                         `;
                     } else {
-                        // Desktop layout - with number circle
+                        // Desktop layout - with number circle - dark mode styling
                         return `
                             <div class="faq-item" data-faq-id="${item.id}">
-                                <button class="w-full text-left flex items-center justify-between p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                                <button class="w-full text-left flex items-center justify-between p-4 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
                                     <div class="flex items-center flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3">
-                                            <span class="text-primary text-sm font-medium">${index + 1}</span>
+                                        <div class="w-8 h-8 rounded-full bg-red-900 flex items-center justify-center mr-3">
+                                            <span class="text-red-300 text-sm font-medium">${index + 1}</span>
                                         </div>
-                                        <h4 class="text-gray-800 font-medium pr-8">${escapeHtml(item.question)}</h4>
+                                        <h4 class="text-gray-200 font-medium pr-8">${escapeHtml(item.question)}</h4>
                                     </div>
                                     <i data-lucide="chevron-down" class="h-5 w-5 text-gray-400 transform transition-transform"></i>
                                 </button>
-                                <div class="faq-answer hidden px-4 py-3 border-t border-gray-200">
-                                    <p class="text-gray-600 whitespace-pre-wrap pl-11">${escapeHtml(item.answer)}</p>
+                                <div class="faq-answer hidden px-4 py-3 border-t border-gray-700">
+                                    <p class="text-gray-300 whitespace-pre-wrap pl-11">${escapeHtml(item.answer)}</p>
                                 </div>
                             </div>
                         `;

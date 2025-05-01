@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configurar alternância de visualização dos cursos
     setupViewToggle();
     
-    // Configurar pesquisa de cursos
-    setupCourseSearch();
-    
     // Carregar cursos em destaque
     loadShowcaseCourses();
     
@@ -104,23 +101,6 @@ function setupViewToggle() {
     if (savedView === 'list') {
         listView.click();
     }
-}
-
-function setupCourseSearch() {
-    const courseSearch = document.getElementById('courseSearch');
-    courseSearch.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const courseItems = document.querySelectorAll('#myCoursesGrid .course-item');
-        
-        courseItems.forEach(item => {
-            const courseName = item.querySelector('.course-title').textContent.toLowerCase();
-            if (courseName.includes(searchTerm)) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    });
 }
 
 // Variável global para armazenar promoções a serem exibidas
@@ -347,20 +327,18 @@ function setupVideo(promotion) {
 function createCourseCard(course) {
     return `
         <a href="/course/${course.id}" class="course-item group">
-            <div class="relative overflow-hidden rounded-t-lg">
-                <img src="/static/uploads/${course.image || 'placeholder.jpg'}" alt="${course.name}" 
-                    class="course-image w-full h-[160px] object-cover transition-transform duration-300 group-hover:scale-110">
-                <div class="absolute bottom-0 left-0 bg-gradient-to-t from-gray-900 to-transparent w-full h-16"></div>
-            </div>
-            <div class="course-content p-4">
-                <h3 class="course-title text-lg font-semibold mb-2">${course.name}</h3>
-                <div class="flex items-center justify-between">
+            <img src="/static/uploads/${course.image || 'placeholder.jpg'}" alt="${course.name}" 
+                class="course-image">
+            <div class="course-overlay"></div>
+            <div class="course-content">
+                <h3 class="course-title">${course.name}</h3>
+                <div class="course-status">
                     <div class="flex items-center">
-                        <div class="bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-xs font-medium px-3 py-1 rounded-full cursor-pointer">
+                        <div class="bg-primary/20 text-primary hover:bg-primary/30 transition-colors text-xs font-medium px-3 py-1 rounded-full cursor-pointer">
                             <i data-lucide="play" class="h-3 w-3 inline mr-1"></i> Acessar
                         </div>
                     </div>
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-gray-300">
                         <i data-lucide="bar-chart-2" class="h-4 w-4 inline mr-1"></i>
                         <span id="progress_${course.id}">...</span>
                     </div>
@@ -520,7 +498,7 @@ function renderShowcaseCourses() {
 // Função para criar um item de vitrine
 function createShowcaseItem(course, index) {
     return `
-        <div class="showcase-item bg-white rounded-lg overflow-hidden">
+        <div class="showcase-item">
             <div class="showcase-badge">
                 <i data-lucide="sparkles" class="h-3 w-3 inline mr-1"></i>
                 Conteúdo Exclusivo

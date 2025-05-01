@@ -35,6 +35,8 @@ class Course(db.Model):
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text)
     image = db.Column(db.String(255))
+    module_format = db.Column(db.String(20), default='standard')  # 'standard' or 'netflix'
+    theme = db.Column(db.String(20), default='light')  # 'light' or 'dark'
     modules = db.relationship('Module', backref='course', lazy=True, cascade="all, delete-orphan")
     showcases = db.relationship('Showcase', backref='course', lazy=True)
 

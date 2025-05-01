@@ -1,0 +1,595 @@
+body {
+    background-color: #121212;
+    color: #F9FAFB;
+    background-image: linear-gradient(135deg, rgba(40, 40, 45, 0.8) 0%, rgba(18, 18, 18, 1) 50%, rgba(10, 10, 10, 0.9) 100%);
+    background-attachment: fixed;
+}
+
+.bg-gradient-custom {
+    background: linear-gradient(135deg, #B91C1C 0%, #991b1b 50%, #7f1d1d 100%);
+}
+
+/* Remover o overlay escuro da imagem de capa */
+#coverOverlay {
+    display: none; /* Escondendo o overlay para mostrar a imagem original */
+}
+
+/* Estilos para a navegação transparente - simplificado sem blur */
+.nav-transparent {
+    background: rgba(0, 0, 0, 0.2) !important;
+    transition: background 0.3s ease;
+}
+
+.nav-solid {
+    background: linear-gradient(to right, #000000, #111827) !important;
+    transition: background 0.3s ease;
+}
+
+nav {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 9999 !important;
+    pointer-events: auto;
+}
+
+/* Cabeçalho do curso com proporção 16:9 mais compacto */
+#courseHeader {
+    height: auto;
+    padding-top: 42%; /* Reduzido de 56.25% para 42% para ser menos alto, mantendo formato widescreen */
+    min-height: initial;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+/* Cabeçalho do curso com gradiente mais forte no final */
+#courseHeader::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 250px;
+    background: linear-gradient(
+        to bottom,
+        rgba(18, 18, 18, 0) 0%,
+        rgba(18, 18, 18, 0.7) 40%,
+        rgba(18, 18, 18, 0.9) 70%,
+        rgba(18, 18, 18, 0.98) 85%,
+        rgba(18, 18, 18, 1) 100%
+    );
+    pointer-events: none;
+}
+
+/* Animações para os cards de módulos */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Redefinição do estilo base do card */
+.module-card {
+    min-width: 280px;
+    max-width: 340px;
+    position: relative;
+    overflow: hidden;
+    
+    /* Efeito glassmorphism */
+    background: rgba(30, 41, 59, 0.2);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    
+    /* Sombra e profundidade */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+    
+    /* Animação e transição */
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Estado hover atualizado */
+.module-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(148, 163, 184, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Atualização da imagem do módulo */
+.module-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: all 0.5s ease;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
+}
+
+/* Hover na imagem atualizado */
+.module-card:hover .module-image {
+    transform: scale(1.05);
+    filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.6)) brightness(1.08) contrast(1.05);
+}
+
+/* Efeito de brilho deslizante */
+.module-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg, 
+        rgba(255, 255, 255, 0) 30%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        rgba(255, 255, 255, 0) 70%
+    );
+    transition: all 0.5s ease;
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.module-card:hover::after {
+    transform: translateX(100%);
+    opacity: 1;
+}
+
+.module-card:nth-child(1) { animation-delay: 0.1s; }
+.module-card:nth-child(2) { animation-delay: 0.2s; }
+.module-card:nth-child(3) { animation-delay: 0.3s; }
+.module-card:nth-child(4) { animation-delay: 0.4s; }
+.module-card:nth-child(5) { animation-delay: 0.5s; }
+.module-card:nth-child(6) { animation-delay: 0.6s; }
+
+.module-image-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Remover o efeito de brilho vermelho */
+.module-card::before {
+    display: none;
+}
+
+/* Estilos para os controles de navegação com posições ajustadas e visibilidade completa */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 55px;
+    height: 55px;
+    background-color: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(4px);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20; /* Aumentado para sobrepor conteúdo */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.nav-arrow:hover {
+    background-color: #B91C1C;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.nav-arrow.prev {
+    left: 12px; /* Posicionamento absoluto em relação ao container */
+}
+
+.nav-arrow.next {
+    right: 12px; /* Posicionamento absoluto em relação ao container */
+}
+
+/* Estilos para o container de módulos - width aumentado */
+.modules-container {
+    position: relative;
+    overflow: visible;
+    padding: 20px 0;
+    background: linear-gradient(180deg, rgba(18, 18, 18, 0) 0%, rgba(20, 20, 20, 0.4) 50%, rgba(18, 18, 18, 0) 100%);
+    border-radius: 16px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%; /* Ajustado para ocupar toda a largura disponível */
+    z-index: 1 !important;
+}
+
+.w-full.px-3.py-0.flex-grow {
+    z-index: 1 !important;
+}
+
+#modulesWrapper, .modulesWrapper {
+    display: flex;
+    overflow-x: auto; /* Permite scroll, mas esconde a barra visualmente */
+    scroll-behavior: smooth;
+    padding: 10px 0;
+    padding-left: 12px;
+    padding-right: 70px;
+    margin: 0;
+    gap: 20px;
+    width: 100%;
+    scrollbar-width: none; /* Firefox: esconde visualmente */
+    -ms-overflow-style: none; /* IE/Edge: esconde visualmente */
+    justify-content: flex-start;
+}
+
+#modulesWrapper::-webkit-scrollbar, .modulesWrapper::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera: esconde visualmente */
+}
+
+/* Modificação para garantir que o primeiro card fique alinhado corretamente */
+#modulesWrapper .module-card:first-child {
+    margin-left: 0; /* Garante que o primeiro card não tenha margem à esquerda */
+}
+
+/* Título do curso estilizado com cor cinza e sem ícone */
+.course-title-container {
+    margin-top: 35px; /* Aumentado de 10px para 35px para criar mais espaço */
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.course-title-container::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #777777, rgba(119, 119, 119, 0.3)); /* Alterado para tom de cinza */
+    border-radius: 2px;
+}
+
+#courseTitleHeader {
+    font-size: 1.5rem; /* Reduzido de 1.75rem para 1.5rem */
+    font-weight: 500;
+    color: #F9FAFB;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Media query for mobile devices */
+@media screen and (max-width: 768px) {
+    .module-card {
+        min-width: 220px;
+        max-width: 260px;
+    }
+    
+    #modulesWrapper {
+        gap: 15px;
+    }
+}
+
+/* Media query for desktop devices */
+@media (min-width: 768px) {
+    .module-card {
+        max-width: 278px;
+    }
+}
+
+/* Estilos para módulos bloqueados (vitrine) */
+.locked-module {
+    position: relative;
+    overflow: hidden;
+}
+
+.module-lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 5;
+}
+
+.locked-module:hover .module-lock-overlay {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.lock-icon-container {
+    text-align: center;
+    transform: translateY(10px);
+    opacity: 0.9;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0 10px;
+}
+
+.lock-icon-container i {
+    margin-bottom: 8px;
+}
+
+.locked-module:hover .lock-icon-container {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.showcase-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 5;
+}
+
+/* Ajuste para imagens em módulos bloqueados */
+.locked-module .module-image {
+    filter: grayscale(20%) brightness(0.7);
+    transition: all 0.5s ease;
+}
+
+.locked-module:hover .module-image {
+    filter: grayscale(30%) brightness(0.6);
+}
+
+/* Showcase modal styles - improved design */
+.showcase-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    overflow: auto;
+    animation: fadeIn 0.3s ease-out;
+    /* Center vertically and horizontally */
+    display: none; /* Initially hidden but will use flex when shown */
+    align-items: center;
+    justify-content: center;
+}
+
+.showcase-modal.active {
+    display: flex;
+}
+
+.showcase-modal-content {
+    margin: 0 auto; /* Remove top margin to center vertically */
+    padding: 0;
+    width: 90%;
+    max-width: 650px;
+    border-radius: 16px; /* Slightly increased border radius */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); /* Enhanced shadow */
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0); /* Starting position for animation */
+    animation: modalSlideIn 0.4s ease-out forwards;
+}
+
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(30px); 
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0); 
+    }
+}
+
+.showcase-modal-header {
+    padding: 1.75rem 1.5rem; /* Slightly increased vertical padding */
+    text-align: center;
+    /* Changed from red gradient to elegant indigo/blue gradient */
+    background: linear-gradient(135deg, #4338ca 0%, #3b82f6 100%);
+    color: white;
+    position: relative;
+}
+
+/* Close button for the modal */
+.showcase-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.showcase-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.showcase-modal-body {
+    padding: 1.5rem 2rem 2rem; /* Increased padding */
+    margin-top: 0; /* Removed top margin */
+}
+
+.showcase-price-tag {
+    position: absolute;
+    top: 20px;
+    right: -35px; /* Moved slightly further */
+    background: #0891b2; /* Changed to cyan/teal color */
+    color: white;
+    padding: 5px 30px;
+    transform: rotate(45deg);
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); /* Enhanced shadow */
+    z-index: 10;
+    min-width: 120px;
+    text-align: center;
+}
+
+.purchase-button {
+    /* Changed to blue/indigo gradient to match header */
+    background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px; /* Increased padding */
+    border-radius: 10px; /* Slightly more rounded */
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); /* Added subtle shadow */
+}
+
+.purchase-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.5); /* Enhanced hover shadow */
+}
+
+.purchase-shimmer {
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 50%;
+    height: 300%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(25deg);
+    animation: purchaseShimmer 3s infinite;
+}
+
+/* Showcase modal styles */
+.showcase-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    overflow: auto;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.showcase-modal-content {
+    margin: 5% auto;
+    padding: 0;
+    width: 90%;
+    max-width: 650px;
+    border-radius: 12px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.showcase-modal-header {
+    padding: 1.5rem;
+    text-align: center;
+    background: linear-gradient(135deg, #B91C1C 0%, #ef4444 100%);
+    color: white;
+}
+
+.showcase-modal-body {
+    padding: 0 1.5rem 1.5rem;
+    margin-top: 18px;
+}
+
+.showcase-price-tag {
+    position: absolute;
+    top: 20px;
+    right: -30px;
+    background: #059669;
+    color: white;
+    padding: 5px 30px;
+    transform: rotate(45deg);
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    z-index: 10;
+    min-width: 120px;
+    text-align: center;
+}
+
+.purchase-button {
+    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.purchase-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(16, 185, 129, 0.4);
+}
+
+.purchase-shimmer {
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 50%;
+    height: 300%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(25deg);
+    animation: purchaseShimmer 3s infinite;
+}
+
+.dark-modal {
+    background-color: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInButton {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.cta-button-animation {
+    animation: fadeInButton 0.5s ease-out forwards;
+}

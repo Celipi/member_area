@@ -111,13 +111,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Pré-visualizar imagem selecionada no modal de Cover
     const coverModalInput = document.getElementById('coverModalInput');
     const coverModalPreview = document.getElementById('coverModalPreview');
+    const coverModalInputMobile = document.getElementById('coverModalInputMobile');
+    const coverModalPreviewMobile = document.getElementById('coverModalPreviewMobile');
     if (coverModalInput && coverModalPreview) {
         coverModalInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    coverModalPreview.innerHTML = `<img src="${e.target.result}" alt="Pré-visualização do Cover" class="max-w-full rounded-md shadow-sm mx-auto">`;
+                    coverModalPreview.innerHTML = `<img src="${e.target.result}" alt="Pré-visualização do Cover Desktop" class="max-w-full rounded-md shadow-sm mx-auto">`;
                     coverModalPreview.style.display = 'block';
                 }
                 reader.readAsDataURL(file);
@@ -127,16 +129,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    if (coverModalInputMobile && coverModalPreviewMobile) {
+        coverModalInputMobile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    coverModalPreviewMobile.innerHTML = `<img src="${e.target.result}" alt="Pré-visualização do Cover Mobile" class="max-w-full rounded-md shadow-sm mx-auto">`;
+                    coverModalPreviewMobile.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                coverModalPreviewMobile.innerHTML = `<p class="text-red-600 bg-red-50 p-2 rounded-md">Arquivo selecionado não é uma imagem</p>`;
+                coverModalPreviewMobile.style.display = 'block';
+            }
+        });
+    }
     
     // Salvar Cover: enviar o arquivo via fetch
     document.getElementById('saveCoverBtn').addEventListener('click', function() {
-        const file = coverModalInput.files[0];
-        if (!file) {
-            alert("Selecione uma imagem antes de salvar.");
+        const fileDesktop = coverModalInput.files[0];
+        const fileMobile = coverModalInputMobile.files[0];
+        if (!fileDesktop && !fileMobile) {
+            alert("Selecione ao menos uma imagem antes de salvar.");
             return;
         }
         var formData = new FormData();
-        formData.append('file', file);
+        if (fileDesktop) formData.append('file', fileDesktop);
+        if (fileMobile) formData.append('file_mobile', fileMobile);
         formData.append('course_id', courseId);
         fetch('/admin/upload_cover', {
             method: 'POST',
@@ -182,9 +202,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function resetCoverModal() {
-        coverModalInput.value = "";
-        coverModalPreview.innerHTML = "";
-        coverModalPreview.style.display = "none";
+        if (coverModalInput) coverModalInput.value = "";
+        if (coverModalPreview) {
+            coverModalPreview.innerHTML = "";
+            coverModalPreview.style.display = "none";
+        }
+        if (coverModalInputMobile) coverModalInputMobile.value = "";
+        if (coverModalPreviewMobile) {
+            coverModalPreviewMobile.innerHTML = "";
+            coverModalPreviewMobile.style.display = "none";
+        }
     }
 
     // Inicializa o editor Quill para a descrição da aula

@@ -553,8 +553,13 @@ def update_lesson(lesson_id):
 @admin_required
 def delete_lesson(lesson_id):
     lesson = Lesson.query.get_or_404(lesson_id)
-    for doc in lesson.documents:
-        os.remove(os.path.join('static/uploads', doc.filename))
+    # Remover arquivos físicos e registros dos documentos
+    for doc in lesson.documents[:]:
+        try:
+            os.remove(os.path.join('static/uploads', doc.filename))
+        except Exception:
+            pass  # Se não existir, ignora
+        db.session.delete(doc)
     db.session.delete(lesson)
     db.session.commit()
     flash('Aula excluída com sucesso!', 'success')
@@ -956,15 +961,21 @@ def mark_lesson_completed():
 @app.route('/admin/upload_cover', methods=['POST'])
 @admin_required
 def upload_cover():
-    if 'file' not in request.files:
-        return jsonify({'success': False, 'message': 'Nenhum arquivo enviado'})
-    file = request.files['file']
     course_id = request.form.get('course_id')
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'Nenhum arquivo selecionado'})
-    if file:
+    file_desktop = request.files.get('file')
+    file_mobile = request.files.get('file_mobile')
+    if not file_desktop and not file_mobile:
+        return jsonify({'success': False, 'message': 'Nenhum arquivo enviado'})
+    saved = False
+    if file_desktop and file_desktop.filename:
         filename = secure_filename(f"cover_{course_id}.jpg")
-        file.save(os.path.join('static/uploads', filename))
+        file_desktop.save(os.path.join('static/uploads', filename))
+        saved = True
+    if file_mobile and file_mobile.filename:
+        filename_mobile = secure_filename(f"cover_{course_id}_mobile.jpg")
+        file_mobile.save(os.path.join('static/uploads', filename_mobile))
+        saved = True
+    if saved:
         return jsonify({'success': True})
     return jsonify({'success': False, 'message': 'Upload falhou'})
 
@@ -1780,11 +1791,7 @@ def get_student_progress():
     total_lessons = Lesson.query.filter(Lesson.module_id.in_(module_ids)).count()
 
     # Get completed lessons count
-    completed_lessons = db.session.query(student_lessons)\
-        .join(Lesson)\
-        .filter(student_lessons.c.student_id == student_id)\
-        .filter(Lesson.module_id.in_(module_ids))\
-        .count()
+    completed_lessons = db.session.query(student_lessons).filter_by(student_id=student_id).join(Lesson).join(Module).filter(Module.course_id.in_(student_course_ids)).count()
 
     # Calculate progress percentage
     progress_percentage = (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0
@@ -1825,9 +1832,8 @@ def get_course_progress(course_id):
     })
 
 @app.route('/up')
-def health():
-   return 'OK'
-
+def up():
+    return 'OK'
 
 # Register blueprints
 from webhook import webhook

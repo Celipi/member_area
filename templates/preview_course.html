@@ -6,7 +6,7 @@
     <title>Módulos do Curso</title>
     <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
     <!-- CSS Personalizado -->
-    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <link rel="stylesheet" href="/static/src/css/course_modules.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Tailwind CSS -->
@@ -20,7 +20,7 @@
                     colors: {
                         primary: '#B91C1C',
                         secondary: '#F9FAFB',
-                        dark: '#111827',
+                        dark: '#121212',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -30,19 +30,18 @@
         }
     </script>
     <style>
-        .bg-gradient-custom {
-            background: linear-gradient(135deg, #B91C1C 0%, #991b1b 50%, #7f1d1d 100%);
+        /* Estilos específicos para o modo de pré-visualização */
+        .preview-badge {
+            background: rgba(185, 28, 28, 0.1);
+            color: #B91C1C;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
         }
-        #coverOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            pointer-events: none;
-            z-index: 1;
-        }
+        
         /* Animações para os cards de módulos */
         @keyframes fadeInUp {
             from {
@@ -54,16 +53,18 @@
                 transform: translateY(0);
             }
         }
-        .module-card {
-            animation: fadeInUp 0.5s ease-out forwards;
-            opacity: 0;
+        
+        .progress-container {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            padding: 10px 15px;
+            backdrop-filter: blur(5px);
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            width: auto;
         }
-        .module-card:nth-child(1) { animation-delay: 0.1s; }
-        .module-card:nth-child(2) { animation-delay: 0.2s; }
-        .module-card:nth-child(3) { animation-delay: 0.3s; }
-        .module-card:nth-child(4) { animation-delay: 0.4s; }
-        .module-card:nth-child(5) { animation-delay: 0.5s; }
-        .module-card:nth-child(6) { animation-delay: 0.6s; }
         
         .progress-bar {
             height: 6px;
@@ -73,14 +74,15 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-50 font-sans text-gray-800 flex flex-col">
+<body class="min-h-screen font-sans text-gray-100 flex flex-col">
     <!-- Navegação superior -->
-    <nav class="fixed top-0 left-0 w-full bg-white shadow-md z-10 py-3 px-4">
-        <div class="container mx-auto flex items-center justify-between">
-            <a href="/admin" class="text-gray-600 hover:text-primary transition-colors flex items-center">
+    <nav class="fixed top-0 left-0 w-full shadow-lg z-10 py-3 px-4">
+        <div class="container flex items-center justify-between">
+            <a id="backLink" href="#" class="text-gray-200 hover:text-primary transition-colors flex items-center">
                 <i data-lucide="chevron-left" class="mr-2 h-4 w-4"></i> 
                 <span>Voltar para o Painel de Administrador</span>
-                <span class="ml-2 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
+                <span class="ml-2 preview-badge">
+                    <i data-lucide="eye" class="h-3 w-3 mr-1"></i>
                     Modo Pré-visualização
                 </span>
             </a>
@@ -91,48 +93,49 @@
     </nav>
 
     <!-- Cabeçalho do curso com capa -->
-    <div id="courseHeader" class="relative bg-gradient-custom pt-28 pb-24">
+    <div id="courseHeader" class="relative bg-gradient-custom">
         <!-- Overlay para escurecer a imagem -->
         <div id="coverOverlay"></div>
-        <div class="container mx-auto px-4 relative z-10">
-            <span class="inline-block bg-white/20 text-white px-3 py-1 rounded-full text-sm mb-4 backdrop-blur-sm">
-                <i data-lucide="graduation-cap" class="h-4 w-4 inline mr-1"></i> Curso
-            </span>
-            <h2 id="courseTitle" class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"></h2>
-            <p id="courseDescription" class="text-gray-200 mb-8 max-w-2xl text-sm md:text-base"></p>
-            
-            <div class="flex flex-col md:flex-row md:items-center bg-white/10 backdrop-blur-sm p-4 rounded-lg max-w-2xl">
-                <div class="w-full md:w-64 mb-4 md:mb-0 md:mr-4 bg-gray-700/50 rounded-full h-2.5">
+        
+        <!-- Informações do progresso do curso (mostrado abaixo do cabeçalho) -->
+        <div class="container mx-auto px-4 relative z-10 text-center" 
+             style="position: absolute; bottom: 40px; left: 0; right: 0;">
+            <div class="progress-container">
+                <div class="w-full md:w-64 h-2.5 bg-gray-700/50 rounded-full">
                     <div id="courseProgress" class="progress-bar h-2.5 rounded-full" style="width: 0%"></div>
                 </div>
-                <p id="courseCompletion" class="text-sm text-white/90 font-medium"></p>
+                <p id="courseCompletion" class="text-sm text-white/90 font-medium ml-3"></p>
             </div>
         </div>
-        
-        <!-- Forma decorativa -->
-        <div class="absolute -bottom-1 left-0 right-0 h-8 bg-gray-50" style="clip-path: polygon(0 0, 100% 100%, 100% 100%, 0% 100%);"></div>
     </div>
 
     <!-- Conteúdo principal -->
-    <div class="container mx-auto px-4 py-12 flex-grow">
-        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-            <h3 class="text-2xl font-bold mb-6 text-gray-800 flex items-center border-b border-gray-100 pb-4">
-                <i data-lucide="book-open" class="h-6 w-6 mr-3 text-primary"></i>
-                Módulos do Curso
-            </h3>
-            <div id="modulesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+    <div class="w-full px-3 py-0 flex-grow relative z-20">
+        <!-- Container para módulos com navegação -->
+        <div class="modules-container px-2">
+            <!-- Botões de navegação -->
+            <div id="prevButton" class="nav-arrow prev hidden">
+                <i data-lucide="chevron-left" class="h-7 w-7"></i>
+            </div>
+            
+            <div id="nextButton" class="nav-arrow next hidden">
+                <i data-lucide="chevron-right" class="h-7 w-7"></i>
+            </div>
+            
+            <!-- Wrapper para os módulos com scroll horizontal -->
+            <div id="modulesWrapper">
                 <!-- Módulos serão inseridos aqui dinamicamente -->
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-auto">
-        <div class="container mx-auto px-4 py-6">
+    <footer class="bg-black border-t border-gray-800 mt-auto">
+        <div class="container px-4 py-6 pl-6">
             <div class="flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-600 text-sm">&copy; 2024 <span id="footerPlatformName">MembriumWL</span>. Todos os direitos reservados.</p>
+                <p class="text-gray-400 text-sm">&copy; 2024 <span id="footerPlatformName">MembriumWL</span>. Todos os direitos reservados.</p>
                 <div class="flex space-x-4 mt-4 md:mt-0">
-                    <a href="#" id="supportEmailLink" class="text-gray-500 hover:text-primary transition-colors flex items-center" style="display: none;">
+                    <a href="#" id="supportEmailLink" class="text-gray-400 hover:text-primary transition-colors flex items-center" style="display: none;">
                         <i data-lucide="mail" class="h-5 w-5 mr-1"></i>
                         <span id="supportEmail" class="text-sm">suporte@exemplo.com</span>
                     </a>
@@ -142,5 +145,15 @@
     </footer>
 
     <script src="/static/src/js/preview_course.js"></script>
+    <script>
+        (function() {
+            // Extrair o course_id da URL atual, assumindo que a URL é do tipo /preview_course/{course_id}
+            var parts = window.location.pathname.split('/');
+            var courseId = parts[parts.length - 1];
+            if(courseId) {
+                document.getElementById('backLink').href = '/admin/course/' + courseId + '/modification';
+            }
+        })();
+    </script>
 </body>
 </html>
