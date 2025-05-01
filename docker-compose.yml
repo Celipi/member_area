@@ -1,24 +1,29 @@
 services:
   traefik:
     image: traefik:v3.0
+    container_name: traefik
     command:
+      - "--api.dashboard=true"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.watch=true"
+      - "--providers.docker.network=minha_rede"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.email=admin@${DOMAIN}"
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - letsencrypt:/letsencrypt
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
     networks:
-      - traefik_proxy
+      - minha_rede
+    restart: always
 
   db:
     image: postgres:15
@@ -36,17 +41,17 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - traefik_proxy
+      - minha_rede
 
   web:
     # build: .
-    image: ghcr.io/celipi/member_area:latest
+    image: ghcr.io/celipi/member_area:v1.0
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.web.entrypoints=web,websecure"
+      - "traefik.http.routers.web.rule=Host(`${DOMAIN}`) || Host(`${SUB_DOMAIN}`)"
+      - "traefik.http.routers.web.entrypoints=websecure"
       - "traefik.http.routers.web.tls=true"
-      - "traefik.http.routers.web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web.tls.certresolver=myresolver"
       - "traefik.http.services.web.loadbalancer.server.port=3000"
     # ports:
     #   - "3000:3000"
@@ -60,7 +65,7 @@ services:
     volumes:
       - temp_data:/app/temp
     networks:
-      - traefik_proxy
+      - minha_rede
 
 volumes:
   postgres_data:
@@ -68,5 +73,4 @@ volumes:
   letsencrypt:
 
 networks:
-  traefik_proxy:
-    external: true
+  minha_rede:
