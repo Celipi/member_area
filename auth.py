@@ -1,6 +1,6 @@
 from flask import session, redirect, url_for, flash
 from functools import wraps
-from database import Admin, Student
+from models import Admin, Student
 
 def admin_required(f):
     @wraps(f)

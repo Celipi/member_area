@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Transcrições</title>
+    <link rel="shortcut icon" href="/static/fixed/favicon.webp" type="image/x-icon">
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="/static/src/css/styles.css">
+    <link rel="stylesheet" href="/static/src/css/faq.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B91C1C',
+                        secondary: '#F9FAFB',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="shadow-lg w-64 flex-shrink-0 flex flex-col border-r border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-primary flex items-center">
+                    <i data-lucide="layout-dashboard" class="h-6 w-6 mr-3"></i>
+                    MembriumWL
+                </h1>
+            </div>
+            <nav class="flex-grow p-6">
+                <p class="text-xs font-medium text-gray-400 mb-6 uppercase tracking-wider">Gerenciamento</p>
+                <ul class="space-y-4">
+                    <li>
+                        <button onclick="window.location.href='/admin'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="book-open" class="h-5 w-5 mr-3"></i> Cursos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showStudents()" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="users" class="h-5 w-5 mr-3"></i> Alunos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/showcase'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="store" class="h-5 w-5 mr-3"></i> Vitrine
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/promote'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="megaphone" class="h-5 w-5 mr-3"></i> Promoções
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/faq'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="help-circle" class="h-5 w-5 mr-3"></i> FAQ
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/transcript'" class="w-full flex items-center px-5 py-3 bg-primary text-white rounded-md transition-all">
+                            <i data-lucide="scan-text" class="h-5 w-5 mr-3"></i> Transcrições
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/file-manager'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="file" class="h-5 w-5 mr-3"></i> Arquivos
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="window.location.href='/admin/settings'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                            <i data-lucide="settings" class="h-5 w-5 mr-3"></i> Configurações
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-6 border-t border-gray-200 space-y-4">
+                <button onclick="window.open('https://help.membriumwl.com/', '_blank')" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="life-buoy" class="h-5 w-5 mr-3"></i> Ajuda
+                </button>
+                <button onclick="window.location.href='/logout'" class="w-full flex items-center px-5 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-all">
+                    <i data-lucide="log-out" class="h-5 w-5 mr-3"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-grow p-6 overflow-y-auto">
+            <div class="mx-auto max-w-7xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800">Gerenciador de Transcrições</h1>
+                    <button id="addTranscriptButton" class="bg-primary hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md flex items-center transition-all">
+                        <i data-lucide="plus" class="h-5 w-5 mr-2"></i>
+                        Nova Transcrição
+                    </button>
+                </div>
+
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white shadow-md rounded-lg p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100 mr-4">
+                                <i data-lucide="file-text" class="h-6 w-6 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Total de Transcrições</p>
+                                <p id="totalTranscriptsCount" class="text-xl font-bold">--</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white shadow-md rounded-lg p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 mr-4">
+                                <i data-lucide="book" class="h-6 w-6 text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Cursos com Transcrições</p>
+                                <p id="coursesWithTranscriptsCount" class="text-xl font-bold">--</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white shadow-md rounded-lg p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-purple-100 mr-4">
+                                <i data-lucide="award" class="h-6 w-6 text-purple-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Palavras-chave Indexadas</p>
+                                <p id="keywordsCount" class="text-xl font-bold">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and filter bar -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="col-span-1">
+                            <label for="courseFilter" class="block text-sm font-medium text-gray-700 mb-1">Curso</label>
+                            <select id="courseFilter" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                                <option value="">Todos os cursos</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1">
+                            <label for="moduleFilter" class="block text-sm font-medium text-gray-700 mb-1">Módulo</label>
+                            <select id="moduleFilter" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" disabled>
+                                <option value="">Selecione um módulo</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1 md:col-span-1">
+                            <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
+                                </div>
+                                <input type="text" id="searchInput" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5 pl-10" placeholder="Buscar transcrições...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transcript Table -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Aula
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Módulo
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Curso
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Tamanho
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Atualizado
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Ações
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="transcriptTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Transcript items will be added here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Empty state -->
+                    <div id="emptyState" class="hidden py-12 text-center">
+                        <div class="inline-block p-4 rounded-full bg-gray-100 mx-auto mb-4">
+                            <i data-lucide="file-question" class="h-8 w-8 text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-500">Nenhuma transcrição encontrada</h3>
+                        <p class="mt-2 text-sm text-gray-400">Adicione uma nova transcrição ou ajuste seus filtros de busca.</p>
+                    </div>
+                    
+                    <!-- Loading state -->
+                    <div id="loadingState" class="hidden py-12 text-center">
+                        <div class="inline-block p-4 rounded-full bg-gray-100 mx-auto mb-4 animate-pulse">
+                            <i data-lucide="loader" class="h-8 w-8 text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-500">Carregando...</h3>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex justify-between items-center mt-6 pagination-container">
+                    <p class="text-sm text-gray-500">
+                        <span id="totalItems">0</span> itens encontrados
+                    </p>
+                    <div class="flex space-x-1" id="pagination">
+                        <!-- Pagination buttons will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Novo/Editar Transcrição -->
+    <div id="transcriptModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-4xl mx-auto my-8 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-xl font-bold text-gray-800">Nova Transcrição</h2>
+                <button class="close text-gray-500 hover:text-gray-800 transition-colors">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+
+            <form id="transcriptForm" class="space-y-6">
+                <div class="form-section">
+                    <h3>Selecione a Aula</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label for="formCourseSelect" class="block text-sm font-medium text-gray-700 mb-1">Curso</label>
+                            <select id="formCourseSelect" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                                <option value="">Selecione um curso</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="formModuleSelect" class="block text-sm font-medium text-gray-700 mb-1">Módulo</label>
+                            <select id="formModuleSelect" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" disabled>
+                                <option value="">Selecione um módulo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="formLessonSelect" class="block text-sm font-medium text-gray-700 mb-1">Aula</label>
+                            <select id="formLessonSelect" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" disabled>
+                                <option value="">Selecione uma aula</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Dados da Transcrição</h3>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label for="transcriptText" class="block text-sm font-medium text-gray-700 mb-1">Transcrição da Aula</label>
+                            <div class="relative">
+                                <textarea id="transcriptText" name="transcriptText" rows="10" 
+                                        class="w-full border border-gray-300 rounded-md p-3 focus:ring-primary focus:border-primary shadow-sm"
+                                        placeholder="Digite ou cole aqui a transcrição completa da aula..."></textarea>
+                                <div id="youtubeTranscriptionTools" class="absolute top-3 right-3">
+                                    <button type="button" id="getYoutubeTranscription" 
+                                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-xs flex items-center transition-colors">
+                                        <i data-lucide="youtube" class="h-4 w-4 mr-1.5 text-red-600"></i>
+                                        Importar do YouTube
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="transcriptVector" class="block text-sm font-medium text-gray-700 mb-1 flex justify-between items-center">
+                                <span>Resumo da Aula</span>
+                                <button type="button" id="generateVector" 
+                                        class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-md text-xs flex items-center transition-colors">
+                                    <i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1"></i>
+                                    Gerar com IA
+                                </button>
+                            </label>
+                            <textarea id="transcriptVector" name="transcriptVector" rows="4" 
+                                    class="w-full border border-gray-300 rounded-md p-3 focus:ring-primary focus:border-primary shadow-sm"
+                                    placeholder="Um resumo conciso da aula para ajudar nas buscas..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label for="searchableKeywords" class="block text-sm font-medium text-gray-700 mb-1 flex justify-between items-center">
+                                <span>Palavras-chave</span>
+                                <button type="button" id="generateKeywords" 
+                                        class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-md text-xs flex items-center transition-colors">
+                                    <i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1"></i>
+                                    Gerar com IA
+                                </button>
+                            </label>
+                            <textarea id="searchableKeywords" name="searchableKeywords" rows="2" 
+                                    class="w-full border border-gray-300 rounded-md p-3 focus:ring-primary focus:border-primary shadow-sm"
+                                    placeholder="Palavras-chave separadas por vírgulas..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-4">
+                    <button type="button" id="cancelTranscript" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors">
+                        Cancelar
+                    </button>
+                    <div class="space-x-2">
+                        <button type="button" id="deleteTranscript" class="hidden bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 px-4 rounded-md transition-colors">
+                            Excluir
+                        </button>
+                        <button type="submit" class="bg-primary hover:bg-red-700 text-white font-medium py-2 px-6 rounded-md transition-colors">
+                            Salvar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de YouTube URL -->
+    <div id="youtubeModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md mx-auto my-8 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Importar do YouTube</h2>
+                <button class="close text-gray-500 hover:text-gray-800 transition-colors">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+
+            <form id="youtubeForm" class="space-y-4">
+                <div>
+                    <label for="youtubeUrl" class="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo do YouTube</label>
+                    <input type="url" id="youtubeUrl" name="youtubeUrl" 
+                           class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-primary focus:border-primary shadow-sm"
+                           placeholder="https://www.youtube.com/watch?v=..." required>
+                </div>
+                
+                <div>
+                    <label for="aiProvider" class="block text-sm font-medium text-gray-700 mb-1">Provedor de IA</label>
+                    <select id="aiProvider" name="aiProvider" 
+                            class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-primary focus:border-primary shadow-sm">
+                        <option value="groq">GROQ</option>
+                        <option value="openai">OpenAI</option>
+                    </select>
+                </div>
+                
+                <!-- Estado de carregamento -->
+                <div id="youtubeLoadingState" class="hidden py-4 text-center">
+                    <div class="inline-block p-2 rounded-full bg-gray-100 mx-auto mb-2">
+                        <i data-lucide="loader-2" class="h-6 w-6 text-primary animate-spin"></i>
+                    </div>
+                    <p class="text-sm text-gray-600">Baixando e processando transcrição...</p>
+                    <p class="text-xs text-gray-500 mt-1">Isso pode levar alguns minutos.</p>
+                </div>
+                
+                <!-- Estado de erro -->
+                <div id="youtubeErrorState" class="hidden py-4 mb-2 text-center text-red-600">
+                    <i data-lucide="alert-triangle" class="h-6 w-6 mx-auto mb-2"></i>
+                    <p id="youtubeErrorMessage" class="text-sm">Ocorreu um erro ao processar o vídeo.</p>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button type="button" id="cancelYoutube" 
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="submitYoutube"
+                            class="bg-primary hover:bg-red-700 text-white font-medium py-2 px-6 rounded-md transition-colors">
+                        Importar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes da Transcrição -->
+    <div id="transcriptDetailsModal" class="modal">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-4xl mx-auto my-8 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="detailsTitle" class="text-xl font-bold text-gray-800">Detalhes da Transcrição</h2>
+                <button class="close text-gray-500 hover:text-gray-800 transition-colors">
+                    <i data-lucide="x" class="h-6 w-6"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Curso</h3>
+                        <p id="detailsCourse" class="text-gray-900">-</p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Módulo</h3>
+                        <p id="detailsModule" class="text-gray-900">-</p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Aula</h3>
+                        <p id="detailsLesson" class="text-gray-900">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="font-medium text-gray-700">Transcrição</h3>
+                        <span class="text-sm text-gray-500" id="detailsWordCount">0 palavras</span>
+                    </div>
+                    <div class="p-4 max-h-64 overflow-y-auto">
+                        <p id="detailsTranscriptText" class="text-gray-700 whitespace-pre-wrap">-</p>
+                    </div>
+                </div>
+                
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-700">Resumo</h3>
+                    </div>
+                    <div class="p-4">
+                        <p id="detailsVector" class="text-gray-700">-</p>
+                    </div>
+                </div>
+                
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-700">Palavras-chave</h3>
+                    </div>
+                    <div class="p-4" id="detailsKeywordsContainer">
+                        <!-- Keywords will be added here dynamically -->
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center text-sm text-gray-500 mt-8 pt-4 border-t border-gray-200">
+                    <div>
+                        <span>Criado em: </span>
+                        <span id="detailsCreatedAt">-</span>
+                    </div>
+                    <div>
+                        <span>Atualizado em: </span>
+                        <span id="detailsUpdatedAt">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end mt-6 pt-4 border-t border-gray-200">
+                <div class="space-x-3 flex flex-row">
+                    <button type="button" id="editFromDetails" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 px-4 rounded-md transition-colors flex items-center">
+                        <i data-lucide="edit-2" class="h-4 w-4 mr-2"></i>
+                        Editar
+                    </button>
+                    <button class="close bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- JS específico para transcrição -->
+    <script src="/static/src/js/transcript.js"></script>
+</body>
+</html>

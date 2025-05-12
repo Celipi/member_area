@@ -312,23 +312,24 @@ def generate_faq():
     lesson_id = data.get('lesson_id')
     model_id = data.get('model_id')
     provider = data.get('provider', 'groq')  # Default to GROQ for backward compatibility
-    
-    logger.info(f"Starting FAQ generation for lesson ID: {lesson_id} with model: {model_id} using {provider}")
-    
+    generate_faq_flag = data.get('generate_faq', True)
+
+    logger.info(f"Starting FAQ generation for lesson ID: {lesson_id} with model: {model_id} using {provider} (generate_faq={generate_faq_flag})")
+
     if not lesson_id:
         logger.warning("Lesson ID not provided")
         return jsonify({'success': False, 'message': 'ID da aula não fornecido'})
-    
+
     # Get settings for API keys
     settings = Settings.query.first()
-    
+
     if not settings:
         logger.warning("No settings found")
         return jsonify({
             'success': False, 
             'message': 'Configurações não encontradas'
         })
-    
+
     if provider == 'groq' and not getattr(settings, 'groq_api', None):
         logger.warning("GROQ API key not found in settings")
         return jsonify({
@@ -341,37 +342,35 @@ def generate_faq():
             'success': False, 
             'message': 'API key da OpenAI não encontrada'
         })
-    
+
     # Get lesson
     lesson = Lesson.query.get(lesson_id)
-    
+
     if not lesson:
         logger.warning(f"Lesson with ID {lesson_id} not found")
         return jsonify({'success': False, 'message': 'Aula não encontrada'})
-    
+
     if not lesson.video_url:
         logger.warning(f"Lesson with ID {lesson_id} has no video URL")
         return jsonify({'success': False, 'message': 'Esta aula não tem vídeo associado'})
-    
+
     # Check if transcript already exists
     existing_transcript = LessonTranscript.query.filter_by(lesson_id=lesson_id).first()
-    
+
     # Initialize variables needed for FAQ generation
     transcription_text = None
     groq_client = None
     openai_client = None
     audio_file_path = None
-    
+
     # Check if transcript exists AND if the video_url matches the current lesson's video_url
     if existing_transcript and existing_transcript.transcript_text and existing_transcript.video_url == lesson.video_url:
         # Use existing transcript - video hasn't changed
         logger.info(f"Using existing transcript for lesson ID: {lesson_id} (video URL unchanged)")
         transcription_text = existing_transcript.transcript_text
-        
-        # Initialize appropriate client based on provider
         if provider == 'groq':
             groq_client = Groq(api_key=settings.groq_api)
-        else:  # OpenAI
+        else:
             openai_client = OpenAI(api_key=settings.openai_api)
     else:
         # No transcript exists OR video URL has changed - need to download and transcribe audio
@@ -610,6 +609,15 @@ def generate_faq():
                 'message': f'Erro ao processar áudio: {str(e)}'
             })
     
+    # Se for apenas para transcrever, não gerar FAQ
+    if not generate_faq_flag:
+        logger.info("generate_faq=False: returning only transcript import result")
+        return jsonify({
+            'success': True,
+            'message': 'Transcrição importada com sucesso',
+            'lesson_id': lesson_id
+        })
+
     # Step 4: Generate FAQ from transcription
     logger.info("Generating FAQ from transcription")
     system_prompt = """Você é um especialista em criação de FAQs (Perguntas Frequentes) para aulas educacionais.
