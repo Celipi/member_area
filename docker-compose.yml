@@ -64,6 +64,7 @@ services:
       - FLASK_ENV=production
     volumes:
       - temp_data:/app/temp
+      - uploads:/app/static/uploads
     networks:
       - minha_rede
 

@@ -120,18 +120,28 @@ document.getElementById('editCourseForm').onsubmit = function(e) {
         method: 'PUT',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            throw new Error('Resposta não é JSON válido');
+        }
+    })
     .then(data => {
         if (data.success) {
             document.getElementById('editCourseModal').style.display = 'none';
             fetchCourses();
         } else {
-            alert('Erro ao atualizar o curso');
+            alert('Erro ao atualizar o curso: ' + (data.error || 'Erro desconhecido'));
         }
     })
     .catch(error => {
         console.error('Erro:', error);
-        alert('Erro ao atualizar o curso');
+        alert('Erro ao atualizar o curso: ' + error.message);
     })
     .finally(() => {
         submitButton.disabled = false;
@@ -144,13 +154,27 @@ document.getElementById('editCourseForm').onsubmit = function(e) {
 function deleteCourse(id) {
     if (confirm('Tem certeza que deseja excluir este curso?')) {
         fetch(`/admin/course/${id}`, { method: 'DELETE' })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    throw new Error('Resposta não é JSON válido');
+                }
+            })
             .then(data => {
                 if (data.success) {
                     fetchCourses();
                 } else {
-                    alert('Erro ao excluir o curso');
+                    alert('Erro ao excluir curso: ' + (data.error || 'Erro desconhecido'));
                 }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao excluir curso: ' + error.message);
             });
     }
 }
@@ -346,7 +370,17 @@ document.getElementById('newCourseForm').onsubmit = function(e) {
         method: method,
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            throw new Error('Resposta não é JSON válido');
+        }
+    })
     .then(data => {
         if (data.success) {
             this.reset();
@@ -355,12 +389,12 @@ document.getElementById('newCourseForm').onsubmit = function(e) {
             document.getElementById('newCourseModal').style.display = 'none';
             fetchCourses(); // Recarrega a lista de cursos
         } else {
-            alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso');
+            alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso: ' + (data.error || 'Erro desconhecido'));
         }
     })
     .catch(error => {
         console.error('Erro:', error);
-        alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso');
+        alert('Erro ao ' + (courseId ? 'atualizar' : 'criar') + ' o curso: ' + error.message);
     })
     .finally(() => {
         submitButton.disabled = false;

@@ -252,6 +252,7 @@ class MembriumChatbot {
                 border: 1px solid #D1D5DB;
                 outline: none;
                 font-size: 14px;
+                color: #1F2937;
                 transition: border-color 0.2s;
             }
             

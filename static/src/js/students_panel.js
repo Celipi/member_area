@@ -191,6 +191,9 @@ function populateStudentTable(students) {
                 <button onclick="manageCourses(${student.id}, '${student.name}')" class="p-1.5 bg-green-100 rounded-md hover:bg-green-200 transition-all" title="Gerenciar cursos">
                     <i data-lucide="book-open" class="h-4 w-4 text-green-600"></i>
                 </button>
+                <button onclick="resendAccessEmail(${student.id}, '${student.name.replace(/'/g, "\\'")}', '${student.email}')" class="p-1.5 bg-yellow-100 rounded-md hover:bg-yellow-200 transition-all" title="Reenviar email de acesso">
+                    <i data-lucide="mail" class="h-4 w-4 text-yellow-600"></i>
+                </button>
                 <button onclick="copyAccessLink('${student.uuid}')" class="p-1.5 bg-purple-100 rounded-md hover:bg-purple-200 transition-all" title="Copiar link de acesso rápido">
                     <i data-lucide="link" class="h-4 w-4 text-purple-600"></i>
                 </button>
@@ -423,6 +426,64 @@ function deleteStudent(id) {
                 console.error('Error deleting student:', error);
                 alert('Ocorreu um erro ao excluir o aluno.');
             });
+    }
+}
+
+// Função para reenviar email de acesso
+function resendAccessEmail(studentId, studentName, studentEmail) {
+    if (confirm(`Tem certeza que deseja reenviar o email de acesso para ${studentName} (${studentEmail})?`)) {
+        // Mostrar loading no botão
+        const buttons = document.querySelectorAll(`button[onclick*="resendAccessEmail(${studentId}"]`);
+        buttons.forEach(button => {
+            button.disabled = true;
+            button.innerHTML = '<i data-lucide="loader" class="h-4 w-4 text-yellow-600 animate-spin"></i>';
+        });
+        
+        fetch(`/admin/student/${studentId}/resend-access`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                throw new Error('Resposta não é JSON válido');
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                // Mostrar feedback de sucesso
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                toast.textContent = `Email reenviado com sucesso para ${studentName}!`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            } else {
+                alert('Erro ao reenviar email: ' + (data.message || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao reenviar email: ' + error.message);
+        })
+        .finally(() => {
+            // Restaurar botões
+            buttons.forEach(button => {
+                button.disabled = false;
+                button.innerHTML = '<i data-lucide="mail" class="h-4 w-4 text-yellow-600"></i>';
+            });
+            // Recriar ícones do Lucide
+            lucide.createIcons();
+        });
     }
 }
 

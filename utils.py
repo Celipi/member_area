@@ -104,7 +104,7 @@ def send_brevo_email(student_name, student_email, course, password, base_url, se
             'name': student_name,
             'first_name': student_name.split()[0] if student_name else "",
             'email': student_email,
-            'password': password,
+            'password': password if password != "[Senha atual]" else "Utilize sua senha atual, se não alterou é senha123",
             'curso': course.name if course else "",
             'link': f"{base_url}/login",
             'fast_link': f"{base_url}/access/{student.uuid}" if student and student.uuid else ""

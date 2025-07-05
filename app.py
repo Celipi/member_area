@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from models import db, Course, Admin, Student, Module, Lesson, Document, Settings, student_courses, student_lessons, Promotion, Showcase
 from sqlalchemy import func, or_
-from utils import format_description
+from utils import format_description, get_or_create_settings
 import csv
 import json
 from flask import Response, stream_with_context
@@ -60,6 +60,14 @@ def student_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# Função auxiliar para garantir que o diretório de uploads existe
+def ensure_upload_directory():
+    uploads_dir = 'static/uploads'
+    if not os.path.exists(uploads_dir):
+        os.makedirs(uploads_dir)
+        print(f"Diretório {uploads_dir} criado")
+    return uploads_dir
 
 # Rotas
 @app.route('/')
@@ -201,6 +209,7 @@ def create_course():
     image = request.files.get('image')
     
     if image:
+        ensure_upload_directory()
         filename = f"course_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
         image.save(os.path.join('static/uploads', filename))
     else:
@@ -215,21 +224,35 @@ def create_course():
 @app.route('/admin/course/<int:course_id>', methods=['PUT'])
 @admin_required
 def update_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    course.name = request.form['name']
-    course.description = request.form['description']
+    try:
+        course = Course.query.get_or_404(course_id)
+        course.name = request.form['name']
+        course.description = request.form['description']
+        
+        image = request.files.get('image')
+        if image:
+            # Remove imagem antiga se existir
+            if course.image:
+                old_image_path = os.path.join('static/uploads', course.image)
+                if os.path.exists(old_image_path):
+                    try:
+                        os.remove(old_image_path)
+                    except OSError as e:
+                        print(f"Erro ao remover arquivo antigo: {e}")
+            
+            ensure_upload_directory()
+            filename = f"course_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+            image.save(os.path.join('static/uploads', filename))
+            course.image = filename
+        
+        db.session.commit()
+        flash('Curso atualizado com sucesso!', 'success')
+        return jsonify({'success': True})
     
-    image = request.files.get('image')
-    if image:
-        if course.image:
-            os.remove(os.path.join('static/uploads', course.image))
-        filename = f"course_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-        image.save(os.path.join('static/uploads', filename))
-        course.image = filename
-    
-    db.session.commit()
-    flash('Curso atualizado com sucesso!', 'success')
-    return jsonify({'success': True})
+    except Exception as e:
+        print(f"Erro ao atualizar curso: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/course/<int:course_id>', methods=['GET'])
 @admin_required
@@ -245,12 +268,24 @@ def get_course(course_id):
 @app.route('/admin/course/<int:course_id>', methods=['DELETE'])
 @admin_required
 def delete_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    if course.image:
-        os.remove(os.path.join('static/uploads', course.image))
-    db.session.delete(course)
-    db.session.commit()
-    return jsonify({'success': True})
+    try:
+        course = Course.query.get_or_404(course_id)
+        if course.image:
+            image_path = os.path.join('static/uploads', course.image)
+            if os.path.exists(image_path):
+                try:
+                    os.remove(image_path)
+                except OSError as e:
+                    print(f"Erro ao remover arquivo: {e}")
+        
+        db.session.delete(course)
+        db.session.commit()
+        return jsonify({'success': True})
+    
+    except Exception as e:
+        print(f"Erro ao deletar curso: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/students', methods=['GET'])
 @admin_required
@@ -398,6 +433,7 @@ def create_module(course_id):
     image = request.files['image']
     
     if image:
+        ensure_upload_directory()
         filename = f"module_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
         image.save(os.path.join('static/uploads', filename))
     else:
@@ -420,31 +456,57 @@ def create_module(course_id):
 @app.route('/admin/module/<int:module_id>', methods=['PUT'])
 @admin_required
 def update_module(module_id):
-    module = Module.query.get_or_404(module_id)
-    module.name = request.form['name']
+    try:
+        module = Module.query.get_or_404(module_id)
+        module.name = request.form['name']
+        
+        image = request.files.get('image')
+        if image:
+            # Remove imagem antiga se existir
+            if module.image:
+                old_image_path = os.path.join('static/uploads', module.image)
+                if os.path.exists(old_image_path):
+                    try:
+                        os.remove(old_image_path)
+                    except OSError as e:
+                        print(f"Erro ao remover arquivo antigo: {e}")
+            
+            ensure_upload_directory()
+            filename = f"module_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+            image.save(os.path.join('static/uploads', filename))
+            module.image = filename
+        
+        db.session.commit()
+        flash('Módulo atualizado com sucesso!', 'success')
+        return jsonify({'success': True})
     
-    image = request.files.get('image')
-    if image:
-        if module.image:
-            os.remove(os.path.join('static/uploads', module.image))
-        filename = f"module_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-        image.save(os.path.join('static/uploads', filename))
-        module.image = filename
-    
-    db.session.commit()
-    flash('Módulo atualizado com sucesso!', 'success')
-    return jsonify({'success': True})
+    except Exception as e:
+        print(f"Erro ao atualizar módulo: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/module/<int:module_id>', methods=['DELETE'])
 @admin_required
 def delete_module(module_id):
-    module = Module.query.get_or_404(module_id)
-    if module.image:
-        os.remove(os.path.join('static/uploads', module.image))
-    db.session.delete(module)
-    db.session.commit()
-    flash('Módulo excluído com sucesso!', 'success')
-    return jsonify({'success': True})
+    try:
+        module = Module.query.get_or_404(module_id)
+        if module.image:
+            image_path = os.path.join('static/uploads', module.image)
+            if os.path.exists(image_path):
+                try:
+                    os.remove(image_path)
+                except OSError as e:
+                    print(f"Erro ao remover arquivo: {e}")
+        
+        db.session.delete(module)
+        db.session.commit()
+        flash('Módulo excluído com sucesso!', 'success')
+        return jsonify({'success': True})
+    
+    except Exception as e:
+        print(f"Erro ao deletar módulo: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/module/<int:module_id>/lesson', methods=['POST'])
 @admin_required
@@ -483,6 +545,7 @@ def create_lesson(module_id):
     documents = request.files.getlist('documents')
     for doc in documents:
         if doc:
+            ensure_upload_directory()
             filename = f"doc_{datetime.now().strftime('%Y%m%d%H%M%S')}_{doc.filename}"
             doc.save(os.path.join('static/uploads', filename))
             new_document = Document(filename=filename, lesson=new_lesson)
@@ -528,6 +591,7 @@ def update_lesson(lesson_id):
     documents = request.files.getlist('documents')
     for doc in documents:
         if doc:
+            ensure_upload_directory()
             filename = f"doc_{datetime.now().strftime('%Y%m%d%H%M%S')}_{doc.filename}"
             doc.save(os.path.join('static/uploads', filename))
             new_document = Document(filename=filename, lesson=lesson)
@@ -873,12 +937,29 @@ def import_students_csv():
         
         if file and file.filename.endswith('.csv'):
             course_id = request.form.get('course')
+            send_email = request.form.get('sendEmail') == 'on'  # Verificar se o checkbox está marcado
+            
             if not course_id:
                 return jsonify({'success': False, 'message': 'Nenhum curso selecionado'})
             
             course = Course.query.get(course_id)
             if not course:
                 return jsonify({'success': False, 'message': 'Curso não encontrado'})
+            
+            # Obter configurações para email se necessário
+            settings_dict = None
+            if send_email:
+                from utils import get_or_create_settings
+                settings = get_or_create_settings()
+                settings_dict = {
+                    'brevo_enabled': settings.brevo_enabled,
+                    'brevo_api_key': settings.brevo_api_key,
+                    'brevo_email_template': settings.brevo_email_template,
+                    'brevo_email_subject': settings.brevo_email_subject,
+                    'sender_name': settings.sender_name,
+                    'sender_email': settings.sender_email,
+                    'support_email': settings.support_email
+                }
             
             # Ler o conteúdo do arquivo antes de fechá-lo
             file_content = file.read().decode("UTF8")
@@ -902,17 +983,37 @@ def import_students_csv():
                         continue
                     
                     student = Student.query.filter_by(email=email).first()
+                    is_new_student = False
+                    
                     if student:
                         if course not in student.courses:
                             student.courses.append(course)
                             imported_students += 1
                     else:
-                        new_student = Student(name=name, email=email, phone=phone, password=generate_password_hash('senha123'))
-                        new_student.courses.append(course)
-                        db.session.add(new_student)
+                        student = Student(name=name, email=email, phone=phone, password=generate_password_hash('senha123'))
+                        student.courses.append(course)
+                        db.session.add(student)
                         imported_students += 1
+                        is_new_student = True
                     
                     db.session.commit()
+                    
+                    # Enviar email se solicitado e for um novo aluno
+                    if send_email and is_new_student and settings_dict and settings_dict.get('brevo_enabled'):
+                        try:
+                            from utils import send_brevo_email
+                            base_url = request.host_url.rstrip('/')
+                            send_brevo_email(
+                                student_name=student.name,
+                                student_email=student.email,
+                                course=course,
+                                password='senha123',  # Senha padrão
+                                base_url=base_url,
+                                settings_dict=settings_dict,
+                                student=student
+                            )
+                        except Exception as e:
+                            print(f"Erro ao enviar email para {student.email}: {e}")
                     
                     yield json.dumps({
                         'progress': {
@@ -969,10 +1070,12 @@ def upload_cover():
         return jsonify({'success': False, 'message': 'Nenhum arquivo enviado'})
     saved = False
     if file_desktop and file_desktop.filename:
+        ensure_upload_directory()
         filename = secure_filename(f"cover_{course_id}.jpg")
         file_desktop.save(os.path.join('static/uploads', filename))
         saved = True
     if file_mobile and file_mobile.filename:
+        ensure_upload_directory()
         filename_mobile = secure_filename(f"cover_{course_id}_mobile.jpg")
         file_mobile.save(os.path.join('static/uploads', filename_mobile))
         saved = True
@@ -1842,7 +1945,59 @@ app.register_blueprint(faq_ai)  # Register the FAQ AI blueprint
 app.register_blueprint(chatbot)  # Register the chatbot blueprint
 app.register_blueprint(transcript)  # Register the transcript blueprint
 
+@app.route('/admin/student/<int:student_id>/resend-access', methods=['POST'])
+@admin_required
+def resend_student_access(student_id):
+    try:
+        student = Student.query.get_or_404(student_id)
+        
+        # Verificar se o Brevo está configurado
+        from utils import get_or_create_settings
+        settings = get_or_create_settings()
+        settings_dict = {
+            'brevo_enabled': settings.brevo_enabled,
+            'brevo_api_key': settings.brevo_api_key,
+            'brevo_email_template': settings.brevo_email_template,
+            'brevo_email_subject': settings.brevo_email_subject,
+            'sender_name': settings.sender_name,
+            'sender_email': settings.sender_email,
+            'support_email': settings.support_email
+        }
+        
+        if not settings_dict['brevo_enabled']:
+            return jsonify({'success': False, 'message': 'Brevo não está habilitado'}), 400
+        
+        # Obter o primeiro curso do aluno (se houver)
+        course = student.courses[0] if student.courses else None
+        
+        # Obter a URL base
+        base_url = request.host_url.rstrip('/')
+        
+        # Enviar email usando a função existente
+        from utils import send_brevo_email
+        success, message = send_brevo_email(
+            student_name=student.name,
+            student_email=student.email,
+            course=course,
+            password=student.password,  # Enviar a senha real do usuário
+            base_url=base_url,
+            settings_dict=settings_dict,
+            student=student
+        )
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Email reenviado com sucesso'})
+        else:
+            return jsonify({'success': False, 'message': message}), 500
+            
+    except Exception as e:
+        print(f"Erro ao reenviar email: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 if __name__ == '__main__':
+    # Garantir que o diretório de uploads existe
+    ensure_upload_directory()
+    
     with app.app_context():
         db.create_all()
     app.run(host='0.0.0.0', debug=True, port=3000)

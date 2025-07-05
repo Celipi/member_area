@@ -74,6 +74,14 @@
                     </div>
                     
                     <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="sendEmail" name="sendEmail" checked class="mr-3 h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
+                            <span class="text-sm font-medium text-gray-700">Enviar email de acesso para os alunos importados</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1">Se marcado, será enviado um email com os dados de acesso para cada aluno importado.</p>
+                    </div>
+                    
+                    <div>
                         <label for="csvFile" class="block text-sm font-medium text-gray-700 mb-1">Arquivo CSV:</label>
                         <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-primary transition-colors">
                             <div class="space-y-1 text-center">
@@ -133,7 +141,22 @@
                                         <li>Cada linha deve representar um aluno.</li>
                                         <li>A senha padrão para todos os alunos importados será <code class="bg-blue-100 px-1 py-0.5 rounded">senha123</code>.</li>
                                         <li>Se um aluno já existir no sistema, ele será adicionado ao curso selecionado.</li>
+                                        <li>Se o envio de email estiver habilitado, apenas novos alunos receberão o email de acesso.</li>
                                     </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="rounded-md bg-green-50 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i data-lucide="mail" class="h-5 w-5 text-green-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-green-800">Envio de emails</h3>
+                                <div class="mt-2 text-sm text-green-700">
+                                    <p>Quando o envio de email está habilitado, apenas novos alunos (que não existiam no sistema) receberão o email de acesso com seus dados de login.</p>
                                 </div>
                             </div>
                         </div>

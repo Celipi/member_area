@@ -163,7 +163,7 @@ class Showcase(db.Model):
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text)
     image = db.Column(db.String(255))
-    button_text = db.Column(db.String(50))
+    button_text = db.Column(db.String(255))
     button_link = db.Column(db.String(255))
     price = db.Column(db.String(20))
     has_video = db.Column(db.Boolean, default=False)
